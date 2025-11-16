@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>HogarFix - Servicios del Hogar</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="CSS/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+  </head>
+  <body>
+    <nav class="site-header fixed-top">
+      <div class="container d-flex align-items-center">
+        <a class="navbar-brand" href="index.html">
+          <i class="bi bi-tools" style="font-size:28px;color:#6fd0ea"></i>
+          <span class="fw-bold h5 mb-0 text-dark">HogarFix</span>
+        </a>
+        <ul class="nav mx-auto">
+          <li class="nav-item"><a class="nav-link" href="index.html">Inicio</a></li>
+          <li class="nav-item"><a class="nav-link" href="profesionales.html">Servicios</a></li>
+        </ul>
+        <div class="ms-auto">
+          <a href="login.html" class="btn btn-info rounded-pill px-4">Iniciar Sesión</a>
+        </div>
+      </div>
+    </nav>
+
+    <header class="hero d-flex align-items-center justify-content-center text-white">
+      <div class="text-center">
+        <h1 class="display-4 fw-bold">Profesionales confiables<br>cerca de ti</h1>
+        <p class="lead" style="color: whitesmoke; font-weight: 100; font-family: sans-serif;">Encuentra técnicos y profesionales de confianza para tu hogar:<br> electricidad, plomería, pintura y más. Revisa perfiles, compara precios, y solicita servicio en <br> pocos pasos.</p>
+        <a href="register.html" class="btn btn-warning btn-lg">Comenzar</a>
+      </div>
+    </header>
+
+    <main class="container my-5">
+      <section class="how-it-works mb-5">
+        <h2 class="text-center mb-4">Cómo funciona</h2>
+        <div class="row text-center">
+          <div class="col-md-4">
+            <div class="mb-3 display-4">🧭</div>
+            <h5>1. Elige servicio</h5>
+            <p>Selecciona la categoría y describe tu necesidad.</p>
+          </div>
+          <div class="col-md-4">
+            <div class="mb-3 display-4">🔎</div>
+            <h5>2. Encuentra profesional</h5>
+            <p>Revisa perfiles y calificaciones.</p>
+          </div>
+          <div class="col-md-4">
+            <div class="mb-3 display-4">✅</div>
+            <h5>3. Servicio completado</h5>
+            <p>Paga seguro y califica al profesional.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="categorias">
+        <h2 class="text-center mb-4">Nuestros Servicios</h2>
+        <div class="row g-4 services-grid">
+          <div class="col-md-6 col-lg-3">
+            <div class="card service-card h-100 text-center p-4">
+              <div class="service-icon mb-3 mx-auto">
+                <!-- icono: rayo -->
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M13 2L3 14h7l-1 8L21 10h-7l-1-8z" fill="#007BFF"/></svg>
+              </div>
+              <h5 class="fw-bold">Electricidad</h5>
+              <p class="small text-muted">Instalaciones, reparaciones y mantenimiento eléctrico profesional</p>
+              <div class="mt-auto d-grid">
+                <a href="profesionales.html?categoria=Electricidad" class="btn btn-primary rounded-pill">Ver Profesionales &rarr;</a>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-6 col-lg-3">
+            <div class="card service-card h-100 text-center p-4">
+              <div class="service-icon mb-3 mx-auto">
+                <!-- icono: gota -->
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C12 2 7 8 7 12a5 5 0 0010 0c0-4-5-10-5-10z" fill="#007BFF"/></svg>
+              </div>
+              <h5 class="fw-bold">Plomería</h5>
+              <p class="small text-muted">Soluciones rápidas para fugas, instalaciones y sistemas hidráulicos</p>
+              <div class="mt-auto d-grid">
+                <a href="profesionales.html?categoria=Plomería" class="btn btn-primary rounded-pill">Ver Profesionales &rarr;</a>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-6 col-lg-3">
+            <div class="card service-card h-100 text-center p-4">
+              <div class="service-icon mb-3 mx-auto">
+                <!-- icono: pincel -->
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20.7 4.3c-1.4-1.4-3.6-1.4-5 0L7 12.9V17h4.1l8.6-8.6c1.4-1.4 1.4-3.6 0-5z" fill="#007BFF"/></svg>
+              </div>
+              <h5 class="fw-bold">Pintura</h5>
+              <p class="small text-muted">Pintura profesional para interiores y exteriores</p>
+              <div class="mt-auto d-grid">
+                <a href="profesionales.html?categoria=Pintura" class="btn btn-primary rounded-pill">Ver Profesionales &rarr;</a>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-6 col-lg-3">
+            <div class="card service-card h-100 text-center p-4">
+              <div class="service-icon mb-3 mx-auto">
+                <!-- icono: martillo -->
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M21 13l-9-9-4 4 9 9 4-4z" fill="#007BFF"/></svg>
+              </div>
+              <h5 class="fw-bold">Albañilería</h5>
+              <p class="small text-muted">Construcción, remodelación y reparación de estructuras</p>
+              <div class="mt-auto d-grid">
+                <a href="profesionales.html?categoria=Albañilería" class="btn btn-primary rounded-pill">Ver Profesionales &rarr;</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="site-footer bg-dark text-white py-5">
+      <div class="container">
+        <div class="row">
+          <div class="col-md-4 mb-3">
+            <h5 class="fw-bold">HogarFix</h5>
+            <p class="small text-muted">Conecta con profesionales confiables para tu hogar. Calidad y seguridad en cada servicio.</p>
+          </div>
+          <div class="col-md-4 mb-3">
+            <h6 class="fw-semibold">Enlaces</h6>
+            <ul class="list-unstyled small">
+              <li><a href="profesionales.html" class="text-white text-decoration-none">Ver servicios</a></li>
+              <li><a href="register.html" class="text-white text-decoration-none">Regístrate</a></li>
+              <li><a href="login.html" class="text-white text-decoration-none">Iniciar sesión</a></li>
+            </ul>
+          </div>
+          <div class="col-md-4 mb-3">
+            <h6 class="fw-semibold">Contacto</h6>
+            <p class="small mb-1">soporte@hogarfix.local</p>
+            <p class="small">+591 78451268</p>
+          </div>
+        </div>
+        <div class="row mt-3">
+          <div class="col-12 text-center small text-muted" style="color: aliceblue;">&copy; 2025 HogarFix. Todos los derechos reservados.</div>
+        </div>
+      </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/header.js"></script>
+    <script src="js/main.js"></script>
+  </body>
+</html>

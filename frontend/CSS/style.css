@@ -1,0 +1,95 @@
+:root{
+  --bs-primary: #007BFF;
+  --bs-warning: #FFC107;
+  --hf-header-height: 72px;
+}
+/* Espacio superior para que el contenido no quede oculto por el header fijo */
+body{padding-top:var(--hf-header-height)}
+
+/* Encabezado fijo estilo HogarFix (izq logo, centro enlaces, derecha botón) */
+.site-header{
+  height:var(--hf-header-height);
+  display:block;
+  background:#fff;
+  z-index:1030;
+  box-shadow: 0 1px 0 rgba(16,24,40,0.04);
+}
+.site-header .navbar-brand{display:flex;align-items:center;gap:.6rem}
+.site-header .navbar-brand .h5{font-size:1.15rem;color:#1f2d3d}
+.site-header .nav{gap:1.25rem}
+.site-header .nav-link{color:#333;padding:.5rem 0;font-weight:500}
+.site-header .nav-link:hover{color:var(--bs-primary)}
+.site-header .btn-info{background:#7ad5f0;color:#fff;border:0;padding:.45rem 1.1rem}
+.site-header .btn-info:hover{background:#5ecfe8}
+.hero{height:100vh;background-image:linear-gradient(rgba(0,0,0,0.4),rgba(0,0,0,0.4)), url('https://www.parroquialoscastanos.cl/images/img_noticias/fotoportada63755773070ad_16112022_134pm.jpg');background-size:cover;background-position:center}
+.sidebar a{color:#333}
+
+/* Personalizaciones pequeñas */
+.card { border-radius: .6rem; }
+
+/* Servicios - estilo parecido a la imagen */
+.services-grid .service-card{
+  border: 0;
+  box-shadow: 0 8px 30px rgba(16,24,40,0.08);
+  padding: 1.6rem;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  text-align:center;
+}
+.services-grid .service-icon{
+  width:64px;height:64px;border-radius:12px;background:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 18px rgba(0,123,255,0.08);
+}
+.services-grid .service-card h5{margin-top:0.5rem;margin-bottom:0.25rem}
+.services-grid .service-card p{margin-bottom:1rem}
+.services-grid .btn-primary{background:#007BFF;border-color:#007BFF}
+
+/* Admin / Dashboard styles */
+.card { border-radius: .7rem; }
+.card .small.text-muted{opacity:0.8}
+
+.panel-empty{min-height:160px;display:flex;align-items:center;justify-content:center}
+
+/* Button tweaks */
+.btn-info{background:#6fd0ea;color:#fff;border:0}
+.btn-info:hover{background:#57c6e0}
+
+/* dashboard cards */
+.card.p-3 { box-shadow: 0 8px 18px rgba(16,24,40,0.04); }
+
+/* Panel de Cliente - tarjetas de pedidos */
+.pedido-grid .card.pedido-card{
+  border: 0;
+  border-radius: 1rem;
+  padding: 1.25rem;
+  background: linear-gradient(180deg, #ffffff 0%, #fbfeff 100%);
+  box-shadow: 0 18px 40px rgba(47,79,117,0.06);
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+.pedido-grid .card.pedido-card:hover{ transform: translateY(-6px); box-shadow: 0 30px 60px rgba(47,79,117,0.09); }
+.pedido-grid h6{ font-weight:700; }
+.pedido-estado{ display:inline-flex; align-items:center; gap:.5rem; padding:.25rem .65rem; border-radius:20px; background:#fff3d9; color:#6b4b00; font-weight:600; box-shadow: inset 0 -1px 0 rgba(0,0,0,0.02); }
+.pedido-meta{ margin-top:.9rem; color:#6b7280; font-size:.95rem; }
+.pedido-meta i{ margin-right:.5rem; color:#f59e0b; }
+
+/* Aqua rounded button consistent with header */
+.btn-aqua{ background:#6fd0ea; color:#fff; border:0; padding:.55rem 1.1rem; border-radius:28px; box-shadow:0 6px 18px rgba(79,173,205,0.12); }
+.btn-aqua:hover{ background:#57c6e0 }
+
+/* Empty panel CTA */
+.panel-empty .btn{ padding:.5rem 1.1rem; border-radius:28px; }
+
+@media (max-width:767px){
+  .pedido-grid .card.pedido-card{ padding:.9rem }
+}
+
+/* Footer styles */
+.site-footer{ background: linear-gradient(180deg,#90c4d4 0%, #74d5f2 100%); color:#e6eef6 }
+.site-footer a{ color: #cfe9f6 }
+.site-footer a:hover{ color: #fff }
+.site-footer h5, .site-footer h6{ color:#fff }
+.site-footer .small.text-muted{ color: rgba(230,238,246,0.7) }
+
+
+
+
