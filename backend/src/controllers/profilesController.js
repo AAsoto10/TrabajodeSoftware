@@ -3,11 +3,17 @@ const router = express.Router();
 const profileRepo = require('../repositories/profileRepository');
 const authMiddleware = require('../middleware/authMiddleware');
 
-// Public: list approved profiles (optional ?categoria=...)
+// Public: list approved profiles with filters (?categoria, ?zona, ?tarifaMin, ?tarifaMax, ?ratingMin)
 router.get('/', async (req,res)=>{
   try{
-    const categoria = req.query.categoria;
-    const rows = await profileRepo.listApprovedProfiles(categoria);
+    const filters = {
+      categoria: req.query.categoria || null,
+      zona: req.query.zona || null,
+      tarifaMin: req.query.tarifaMin || null,
+      tarifaMax: req.query.tarifaMax || null,
+      ratingMin: req.query.ratingMin || null
+    };
+    const rows = await profileRepo.listApprovedProfiles(filters);
     res.json(rows);
   }catch(err){ res.status(500).json({ message: err.message }); }
 });

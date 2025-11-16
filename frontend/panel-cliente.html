@@ -117,6 +117,45 @@
         </div>
       </div>
 
+      <!-- Modal Reclamo -->
+      <div class="modal fade" id="reclamoModal" tabindex="-1">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Presentar Reclamo</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+              <form id="reclamoForm">
+                <input type="hidden" id="reclamoPedidoId">
+                <div class="alert alert-warning">
+                  <i class="bi bi-exclamation-triangle"></i> Vas a presentar un reclamo sobre el servicio del profesional: <strong id="reclamoProfesional"></strong>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Motivo del reclamo</label>
+                  <select id="reclamoMotivo" class="form-select" required>
+                    <option value="">Selecciona un motivo</option>
+                    <option value="no_llego">El profesional no llegó</option>
+                    <option value="mal_servicio">Mal servicio / trabajo incompleto</option>
+                    <option value="retraso">Llegó tarde sin avisar</option>
+                    <option value="precio">Cobró más de lo acordado</option>
+                    <option value="otro">Otro motivo</option>
+                  </select>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Describe lo sucedido</label>
+                  <textarea id="reclamoDescripcion" class="form-control" rows="4" placeholder="Explica detalladamente lo que ocurrió..." required></textarea>
+                </div>
+                <div class="d-flex gap-2">
+                  <button type="button" class="btn btn-secondary flex-fill" data-bs-dismiss="modal">Cancelar</button>
+                  <button type="submit" class="btn btn-danger flex-fill">Enviar Reclamo</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>

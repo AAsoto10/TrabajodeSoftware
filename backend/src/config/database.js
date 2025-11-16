@@ -64,6 +64,19 @@ async function initDB(){
       comentario TEXT,
       created_at TEXT DEFAULT CURRENT_TIMESTAMP
     );
+
+    CREATE TABLE IF NOT EXISTS reclamos (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      pedido_id INTEGER,
+      cliente_id INTEGER,
+      profesional_id INTEGER,
+      motivo TEXT,
+      descripcion TEXT,
+      estado TEXT DEFAULT 'pendiente',
+      respuesta_admin TEXT,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      resolved_at TEXT
+    );
   `);
 
   // Seed admin - INSERT OR IGNORE via checking existence

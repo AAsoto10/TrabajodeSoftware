@@ -9,6 +9,7 @@ const pedidoController = require('./src/controllers/pedidoController');
 const userController = require('./src/controllers/userController');
 const profilesController = require('./src/controllers/profilesController');
 const ratingController = require('./src/controllers/ratingController');
+const reclamoController = require('./src/controllers/reclamoController');
 
 const authMiddleware = require('./src/middleware/authMiddleware');
 const adminMiddleware = require('./src/middleware/adminMiddleware');
@@ -26,6 +27,7 @@ app.use('/api/pedidos', authMiddleware, pedidoController);
 app.use('/api/users', userController);
 app.use('/api/profiles', profilesController);
 app.use('/api/profesionales', authMiddleware, ratingController);
+app.use('/api/reclamos', authMiddleware, reclamoController);
 
 const PORT = process.env.PORT || 3000;
 

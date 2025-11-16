@@ -27,6 +27,40 @@
 
     <main class="container my-5">
       <h2 id="title" class="mb-4">Profesionales</h2>
+      
+      <!-- Filtros compactos - Solo se muestran si NO hay categoría específica -->
+      <div id="filtrosContainer" class="card mb-4 p-3" style="background-color: #f8f9fa; display: none;">
+        <div class="row g-3 align-items-end">
+          <div class="col-md-3">
+            <label class="form-label small mb-1"><i class="bi bi-search"></i> Buscar por zona o nombre</label>
+            <input type="text" id="filtroZona" class="form-control" placeholder="Escribe para buscar...">
+          </div>
+          <div class="col-md-2">
+            <label class="form-label small mb-1">Tarifa máxima</label>
+            <input type="number" id="filtroTarifaMax" class="form-control" placeholder="Ej: 50" min="0">
+          </div>
+          <div class="col-md-2">
+            <label class="form-label small mb-1">Calificación</label>
+            <select id="filtroRating" class="form-select">
+              <option value="">Todas</option>
+              <option value="3">★★★ </option>
+              <option value="4">★★★★ </option>
+              <option value="5">★★★★★ </option>
+            </select>
+          </div>
+          <div class="col-md-2">
+            <button id="btnAplicarFiltros" class="btn btn-primary w-100">
+              <i class="bi bi-funnel"></i> Filtrar
+            </button>
+          </div>
+          <div class="col-md-3">
+            <button id="btnLimpiarFiltros" class="btn btn-outline-secondary w-100">
+              <i class="bi bi-x-circle"></i> Mostrar todos
+            </button>
+          </div>
+        </div>
+      </div>
+
       <div id="list" class="row g-4"></div>
     </main>
 

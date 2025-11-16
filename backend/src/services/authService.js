@@ -17,6 +17,12 @@ const login = async ({email,password})=>{
   const user = await userRepo.findByEmail(email);
   if (!user) throw new Error('Usuario no encontrado');
   if (!bcrypt.compareSync(password, user.password)) throw new Error('Credenciales invalidas');
+  
+  // Verificar si la cuenta está activa
+  if (user.activo === 0 || user.activo === false) {
+    throw new Error('Cuenta inhabilitada por el administrador');
+  }
+  
   if (user.role === 'profesional' && user.estado_validacion !== 'aprobado') throw new Error('Profesional pendiente de aprobación');
 
   const token = jwt.sign({ id: user.id, role: user.role, email: user.email }, JWT_SECRET, { expiresIn: '8h' });

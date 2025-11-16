@@ -20,4 +20,12 @@ const getRatingsByProfesional = async (profesionalId) => {
     ORDER BY r.created_at DESC`, profesionalId);
 }
 
-module.exports = { createRating, getByPedido, getRatingsByProfesional };
+const getAverageRating = async (profesionalId) => {
+  const db = getDB();
+  const result = await db.get(`SELECT COALESCE(AVG(rating), 0) as promedio, COUNT(id) as total
+    FROM ratings
+    WHERE profesional_id = ?`, profesionalId);
+  return result || { promedio: 0, total: 0 };
+}
+
+module.exports = { createRating, getByPedido, getRatingsByProfesional, getAverageRating };

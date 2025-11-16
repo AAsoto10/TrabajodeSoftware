@@ -19,6 +19,10 @@ document.addEventListener('DOMContentLoaded', ()=>{
         pedidos.forEach(p=>{
           const profesionalText = p.profesional_nombre ? `Profesional: ${p.profesional_nombre}` : (p.profesional_id ? `Profesional: ${p.profesional_id}` : 'Profesional: Sin asignar');
           const created = p.created_at ? `<div class="small text-muted"><i class="bi bi-calendar-event"></i> ${formatDate(p.created_at)}</div>` : '';
+          
+          // Mostrar botón de reclamo solo si el pedido está asignado o completado y tiene profesional
+          const puedeReclamar = p.profesional_id && (p.estado === 'asignado' || p.estado === 'completado' || p.estado === 'pendiente_pago');
+          
           html += `
             <div class="col-12 col-md-6 col-lg-3">
               <div class="card pedido-card h-100 p-3">
@@ -35,6 +39,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
                   <div><i class="bi bi-person-fill"></i> ${profesionalText}</div>
                   ${p.estado === 'pendiente_pago' ? `<div class="mt-3"><button class="btn btn-sm btn-aqua payBtn" data-id="${p.id}" data-price="${p.precio || 0}">Pagar (simulado)</button></div>` : ''}
                   ${p.estado === 'completado' ? `<div class="mt-3"><button class="btn btn-sm btn-outline-primary calificarBtn" data-id="${p.id}">Calificar</button></div>` : ''}
+                  ${puedeReclamar ? `<div class="mt-2"><button class="btn btn-sm btn-outline-danger reclamarBtn" data-pedido-id="${p.id}" data-profesional="${p.profesional_nombre || 'Profesional'}"><i class="bi bi-exclamation-triangle"></i> Reclamar</button></div>` : ''}
                 </div>
               </div>
             </div>`;
@@ -157,6 +162,45 @@ document.addEventListener('DOMContentLoaded', ()=>{
       alert('Gracias por tu calificación');
       if (ratingModal) ratingModal.hide();
       await loadPedidos();
-    }catch(err){ alert(err.message||'Error al enviar calificación'); }
-  }); }
+    }catch(err){ alert(err.message||'Error'); }
+  });}
+
+  // Handler para botón de reclamar
+  pedidosContainer.addEventListener('click', async (ev)=>{
+    const btn = ev.target.closest && ev.target.closest('.reclamarBtn');
+    if (!btn) return;
+    const pedidoId = btn.dataset.pedidoId;
+    const profesional = btn.dataset.profesional;
+    
+    const reclamoModal = new bootstrap.Modal(document.getElementById('reclamoModal'));
+    document.getElementById('reclamoPedidoId').value = pedidoId;
+    document.getElementById('reclamoProfesional').textContent = profesional;
+    reclamoModal.show();
+  });
+
+  // Enviar reclamo
+  const reclamoForm = document.getElementById('reclamoForm');
+  if (reclamoForm) {
+    reclamoForm.addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      const pedidoId = document.getElementById('reclamoPedidoId').value;
+      const motivo = document.getElementById('reclamoMotivo').value;
+      const descripcion = document.getElementById('reclamoDescripcion').value.trim();
+      
+      if (!descripcion) return alert('Describe el motivo del reclamo');
+      
+      try{
+        await window.apiRequest('/reclamos', { 
+          method: 'POST', 
+          body: JSON.stringify({ pedidoId, motivo, descripcion }) 
+        });
+        alert('Reclamo enviado exitosamente. El administrador lo revisará.');
+        const reclamoModal = bootstrap.Modal.getInstance(document.getElementById('reclamoModal'));
+        if (reclamoModal) reclamoModal.hide();
+        reclamoForm.reset();
+      }catch(err){ 
+        alert(err.message || 'Error al enviar reclamo'); 
+      }
+    });
+  }
 });

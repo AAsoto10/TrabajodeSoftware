@@ -38,10 +38,54 @@ const listProfilesByUser = async (userId) => {
   return db.all('SELECT * FROM profiles WHERE user_id = ?', [userId]);
 }
 
-const listApprovedProfiles = async (categoria) => {
+const listApprovedProfiles = async (filters = {}) => {
   const db = getDB();
-  if (categoria) return db.all("SELECT p.*, u.nombre as usuario_nombre, u.id as usuario_id FROM profiles p JOIN users u ON p.user_id = u.id WHERE p.estado_validacion='aprobado' AND lower(p.categoria)=lower(?)", [categoria]);
-  return db.all("SELECT p.*, u.nombre as usuario_nombre, u.id as usuario_id FROM profiles p JOIN users u ON p.user_id = u.id WHERE p.estado_validacion='aprobado'");
+  const { categoria, zona, tarifaMin, tarifaMax, ratingMin } = filters;
+  
+  // Build dynamic query with LEFT JOIN to ratings to calculate avg rating
+  let sql = `
+    SELECT p.*, u.nombre as usuario_nombre, u.id as usuario_id,
+           COALESCE(AVG(r.rating), 0) as rating_promedio,
+           COUNT(r.id) as total_ratings
+    FROM profiles p
+    JOIN users u ON p.user_id = u.id
+    LEFT JOIN ratings r ON r.profesional_id = u.id
+    WHERE p.estado_validacion='aprobado'
+  `;
+  
+  const params = [];
+  
+  if (categoria) {
+    sql += ` AND lower(p.categoria) = lower(?)`;
+    params.push(categoria);
+  }
+  
+  if (zona) {
+    sql += ` AND lower(p.zona) LIKE lower(?)`;
+    params.push(`%${zona}%`);
+  }
+  
+  if (tarifaMin !== undefined && tarifaMin !== null) {
+    sql += ` AND p.tarifa >= ?`;
+    params.push(Number(tarifaMin));
+  }
+  
+  if (tarifaMax !== undefined && tarifaMax !== null) {
+    sql += ` AND p.tarifa <= ?`;
+    params.push(Number(tarifaMax));
+  }
+  
+  sql += ` GROUP BY p.id`;
+  
+  // Filter by rating after grouping (HAVING clause)
+  if (ratingMin !== undefined && ratingMin !== null) {
+    sql += ` HAVING rating_promedio >= ?`;
+    params.push(Number(ratingMin));
+  }
+  
+  sql += ` ORDER BY rating_promedio DESC, p.tarifa ASC`;
+  
+  return db.all(sql, params);
 }
 
 module.exports = { createProfile, updateProfile, deleteProfile, listProfilesByUser, listApprovedProfiles };
