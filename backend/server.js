@@ -40,7 +40,11 @@ initDB().then(()=>{
   // Programar backups automáticos cada 24 horas, manteniendo últimos 10
   backupService.scheduleBackups(24, 10);
   
-  app.listen(PORT, ()=>console.log('Server listening on', PORT));
+  app.listen(PORT, '0.0.0.0', ()=>{
+    console.log(`Server listening on port ${PORT}`);
+    console.log(`Local: http://localhost:${PORT}`);
+    console.log(`Network: http://[TU-IP-LOCAL]:${PORT}`);
+  });
 }).catch(err=>{
   console.error('DB init failed', err);
 });
