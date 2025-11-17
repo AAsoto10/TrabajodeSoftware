@@ -16,17 +16,6 @@ router.post('/', async (req,res)=>{
   }catch(err){ console.error('POST /api/pedidos error:', err); res.status(400).json({message:err.message}); }
 });
 
-// Profesional marca pedido como completado
-router.post('/:id/complete', async (req,res)=>{
-  try{
-    const pedidoId = req.params.id;
-    const user = req.user;
-    if (user.role !== 'profesional') return res.status(403).json({message:'Sólo profesionales pueden completar pedidos'});
-    const result = await pedidoService.completarPedido(pedidoId, user.id);
-    res.json({ message: 'Pedido completado', result });
-  }catch(err){ console.error('POST /api/pedidos/:id/complete error:', err); res.status(500).json({message:err.message}); }
-});
-
 // Listar pedidos del cliente autenticado
 router.get('/cliente', async (req,res)=>{
   try{
@@ -45,6 +34,45 @@ router.get('/profesional', async (req,res)=>{
     const pedidos = await require('../repositories/pedidoRepository').listByProfesional(user.id);
     res.json(pedidos);
   }catch(err){ console.error('GET /api/pedidos/profesional error:', err); res.status(500).json({message:err.message}); }
+});
+
+// Obtener un pedido específico (para chat) - DEBE IR DESPUÉS de /cliente y /profesional
+router.get('/:id', async (req,res)=>{
+  try{
+    const user = req.user;
+    const pedidoId = req.params.id;
+    const db = getDB();
+    
+    const pedido = await db.get(`
+      SELECT p.*, 
+             u1.nombre as cliente_nombre,
+             u2.nombre as profesional_nombre
+      FROM pedidos p
+      LEFT JOIN users u1 ON p.cliente_id = u1.id
+      LEFT JOIN users u2 ON p.profesional_id = u2.id
+      WHERE p.id = ?
+    `, pedidoId);
+    
+    if (!pedido) return res.status(404).json({message:'Pedido no encontrado'});
+    
+    // Verificar que el usuario tenga acceso
+    if (pedido.cliente_id !== user.id && pedido.profesional_id !== user.id && user.role !== 'admin') {
+      return res.status(403).json({message:'No tienes acceso a este pedido'});
+    }
+    
+    res.json(pedido);
+  }catch(err){ console.error('GET /api/pedidos/:id error:', err); res.status(500).json({message:err.message}); }
+});
+
+// Profesional marca pedido como completado
+router.post('/:id/complete', async (req,res)=>{
+  try{
+    const pedidoId = req.params.id;
+    const user = req.user;
+    if (user.role !== 'profesional') return res.status(403).json({message:'Sólo profesionales pueden completar pedidos'});
+    const result = await pedidoService.completarPedido(pedidoId, user.id);
+    res.json({ message: 'Pedido completado', result });
+  }catch(err){ console.error('POST /api/pedidos/:id/complete error:', err); res.status(500).json({message:err.message}); }
 });
 
 // Asignar pedido a profesional (admin o profesional puede asignar a sí mismo)

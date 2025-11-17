@@ -12,14 +12,22 @@
     <nav class="site-header fixed-top">
       <div class="container d-flex align-items-center">
         <a class="navbar-brand" href="index.html">
-          <i class="bi bi-tools" style="font-size:28px;color:#6fd0ea"></i>
-          <span class="fw-bold h5 mb-0 text-dark">HogarFix</span>
+          <img src="images/logo.png" alt="HogarFix Logo" style="height:60px; width:auto; margin-right:12px; object-fit:contain;">
+          <span class="fw-bold h4 mb-0 text-dark">HogarFix</span>
         </a>
         <ul class="nav mx-auto">
           <li class="nav-item"><a class="nav-link" href="index.html">Inicio</a></li>
           <li class="nav-item"><a class="nav-link" href="profesionales.html">Servicios</a></li>
         </ul>
-        <div class="ms-auto">
+        <div class="ms-auto d-flex align-items-center gap-3">
+          <div class="position-relative">
+            <button id="chatToggleBtn" class="btn btn-outline-info rounded-circle p-2" style="width:42px;height:42px;position:relative;">
+              <i class="bi bi-chat-dots" style="font-size:1.1rem;"></i>
+              <span id="chatBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none">
+                0
+              </span>
+            </button>
+          </div>
           <a href="login.html" class="btn btn-info rounded-pill px-4">Iniciar Sesión</a>
         </div>
       </div>
@@ -71,10 +79,8 @@
                   <div class="mb-3">
                     <label class="form-label">Especialidad</label>
                     <select id="p_categoria" class="form-select">
-                      <option value="Electricidad">Electricidad</option>
-                      <option value="Plomería">Plomería</option>
-                      <option value="Pintura">Pintura</option>
-                      <option value="Albañilería">Albañilería</option>
+                      <!-- Las categorías se cargan dinámicamente -->
+                      <option value="">Cargando categorías...</option>
                     </select>
                   </div>
                   <div class="mb-3">
@@ -94,8 +100,28 @@
                     <input id="p_certs" class="form-control" />
                   </div>
                   <div class="mb-3">
-                    <label class="form-label">Avatar (URL)</label>
-                    <input id="p_avatar" class="form-control" />
+                    <label class="form-label">Avatar</label>
+                    <ul class="nav nav-tabs mb-2" id="avatarTabs" role="tablist">
+                      <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="url-tab" data-bs-toggle="tab" data-bs-target="#url-tab-pane" type="button">URL</button>
+                      </li>
+                      <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="file-tab" data-bs-toggle="tab" data-bs-target="#file-tab-pane" type="button">Subir Imagen</button>
+                      </li>
+                    </ul>
+                    <div class="tab-content" id="avatarTabContent">
+                      <div class="tab-pane fade show active" id="url-tab-pane" role="tabpanel">
+                        <input id="p_avatar" class="form-control" placeholder="https://ejemplo.com/imagen.jpg" />
+                        <small class="text-muted">Ingresa la URL de tu imagen</small>
+                      </div>
+                      <div class="tab-pane fade" id="file-tab-pane" role="tabpanel">
+                        <input type="file" id="p_avatar_file" class="form-control" accept="image/*" />
+                        <small class="text-muted">Selecciona una imagen desde tu dispositivo</small>
+                        <div id="avatarPreview" class="mt-2" style="display:none;">
+                          <img id="avatarPreviewImg" src="" alt="Preview" style="max-width: 150px; max-height: 150px; border-radius: 8px; border: 2px solid #dee2e6;" />
+                        </div>
+                      </div>
+                    </div>
                   </div>
                   <div class="d-flex gap-2">
                     <button id="profileSaveBtn" class="btn btn-primary" type="submit">Guardar perfil</button>
@@ -110,10 +136,51 @@
       </main>
     </div>
 
+    <!-- Chat Panel Lateral -->
+    <div id="chatPanel" class="chat-panel">
+      <div class="chat-header">
+        <h5 class="mb-0"><i class="bi bi-chat-dots"></i> Mensajes</h5>
+        <button id="closeChatBtn" class="btn btn-sm btn-light rounded-circle">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+      
+      <div id="conversacionesList" class="chat-conversations-list">
+        <div class="text-center text-muted py-5">
+          <i class="bi bi-inbox" style="font-size:3rem;"></i>
+          <p class="mt-2">No hay conversaciones</p>
+        </div>
+      </div>
+
+      <div id="chatWindow" class="chat-window d-none">
+        <div class="chat-window-header">
+          <button id="backToConversationsBtn" class="btn btn-sm btn-light me-2">
+            <i class="bi bi-arrow-left"></i>
+          </button>
+          <div>
+            <div class="fw-bold" id="chatUserName">Usuario</div>
+            <div class="small text-muted" id="chatPedidoInfo">Pedido</div>
+          </div>
+        </div>
+        
+        <div id="chatMessages" class="chat-messages"></div>
+        
+        <div class="chat-input-container">
+          <form id="chatForm" class="d-flex gap-2">
+            <input type="text" id="chatInput" class="form-control" placeholder="Escribe un mensaje..." autocomplete="off" />
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-send-fill"></i>
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="js/header.js"></script>
     <script src="js/modalHelper.js"></script>
     <script src="js/apiService.js"></script>
+    <script src="js/chatManager.js"></script>
     <script src="js/panelProfesional.js"></script>
   </body>
 </html>

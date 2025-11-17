@@ -14,8 +14,8 @@ document.addEventListener('DOMContentLoaded', ()=>{
         pedidosContainer.innerHTML = '<div class="card panel-empty"><div class="text-center text-muted"><p>No tienes solicitudes aún</p><a id="crearPrimera" class="btn btn-info text-white rounded-pill">Crear primera solicitud</a></div></div>';
         document.getElementById('crearPrimera').addEventListener('click', ()=>{ openPedidoForm(); });
       } else {
-        // Render pedidos in a responsive 4-column grid
-        let html = '<h5 class="mb-3">Mis pedidos</h5><div class="row g-4">';
+        // Render pedidos en un grid responsivo de 3 columnas
+        let html = '<h5 class="mb-4">Mis pedidos</h5><div class="pedido-grid row g-4">';
         pedidos.forEach(p=>{
           const profesionalText = p.profesional_nombre ? `Profesional: ${p.profesional_nombre}` : (p.profesional_id ? `Profesional: ${p.profesional_id}` : 'Profesional: Sin asignar');
           const created = p.created_at ? `<div class="small text-muted"><i class="bi bi-calendar-event"></i> ${formatDate(p.created_at)}</div>` : '';
@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
           const puedeReclamar = p.profesional_id && (p.estado === 'asignado' || p.estado === 'completado' || p.estado === 'pendiente_pago');
           
           html += `
-            <div class="col-12 col-md-6 col-lg-3">
+            <div class="col-12 col-md-6 col-lg-4">
               <div class="card pedido-card h-100 p-3">
                 <div class="d-flex justify-content-between align-items-start">
                   <div>
@@ -37,6 +37,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
                   ${p.direccion ? '<div><i class="bi bi-geo-alt-fill"></i> '+p.direccion+'</div>' : ''}
                   ${created}
                   <div><i class="bi bi-person-fill"></i> ${profesionalText}</div>
+                  ${p.profesional_id ? `<div class="mt-2"><button class="btn btn-sm btn-outline-info chatBtn" data-pedido-id="${p.id}" data-destinatario-id="${p.profesional_id}"><i class="bi bi-chat-dots"></i> Enviar mensaje</button></div>` : ''}
                   ${p.estado === 'pendiente_pago' ? `<div class="mt-3"><button class="btn btn-sm btn-aqua payBtn" data-id="${p.id}" data-price="${p.precio || 0}">Pagar (simulado)</button></div>` : ''}
                   ${p.estado === 'completado' ? `<div class="mt-3"><button class="btn btn-sm btn-outline-primary calificarBtn" data-id="${p.id}">Calificar</button></div>` : ''}
                   ${puedeReclamar ? `<div class="mt-2"><button class="btn btn-sm btn-outline-danger reclamarBtn" data-pedido-id="${p.id}" data-profesional="${p.profesional_nombre || 'Profesional'}"><i class="bi bi-exclamation-triangle"></i> Reclamar</button></div>` : ''}
@@ -217,4 +218,17 @@ document.addEventListener('DOMContentLoaded', ()=>{
       }
     });
   }
+
+  // Event delegation para botones de chat
+  pedidosContainer.addEventListener('click', (ev) => {
+    const chatBtn = ev.target.closest('.chatBtn');
+    if (!chatBtn) return;
+    
+    const pedidoId = chatBtn.dataset.pedidoId;
+    const destinatarioId = chatBtn.dataset.destinatarioId;
+    
+    if (window.chatManager && pedidoId && destinatarioId) {
+      window.chatManager.openChatForPedido(pedidoId, destinatarioId);
+    }
+  });
 });

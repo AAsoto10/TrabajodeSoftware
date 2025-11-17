@@ -78,6 +78,28 @@ async function initDB(){
       created_at TEXT DEFAULT CURRENT_TIMESTAMP,
       resolved_at TEXT
     );
+
+    CREATE TABLE IF NOT EXISTS mensajes (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      pedido_id INTEGER,
+      remitente_id INTEGER,
+      destinatario_id INTEGER,
+      mensaje TEXT NOT NULL,
+      leido INTEGER DEFAULT 0,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (pedido_id) REFERENCES pedidos(id),
+      FOREIGN KEY (remitente_id) REFERENCES users(id),
+      FOREIGN KEY (destinatario_id) REFERENCES users(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS categorias (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      nombre TEXT NOT NULL UNIQUE,
+      descripcion TEXT,
+      icono TEXT DEFAULT 'bi-tools',
+      activo INTEGER DEFAULT 1,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP
+    );
   `);
 
   // Seed admin - INSERT OR IGNORE via checking existence
@@ -87,6 +109,17 @@ async function initDB(){
     const hash = bcrypt.hashSync('admin123', 10);
     await db.run('INSERT INTO users (nombre,email,password,role,estado_validacion) VALUES (?,?,?,?,?)', ['Admin','admin@hogarfix.local', hash, 'admin','aprobado']);
     console.log('Admin seed creado: admin@hogarfix.local / admin123');
+  }
+
+  // Seed categorías predeterminadas
+  const categorias = await db.all('SELECT COUNT(*) as count FROM categorias');
+  if (categorias[0].count === 0) {
+    await db.run("INSERT INTO categorias (nombre, descripcion, icono) VALUES (?, ?, ?)", ['Electricidad', 'Instalación y reparación de sistemas eléctricos', 'bi-lightning-charge']);
+    await db.run("INSERT INTO categorias (nombre, descripcion, icono) VALUES (?, ?, ?)", ['Plomería', 'Reparación e instalación de tuberías y sanitarios', 'bi-droplet']);
+    await db.run("INSERT INTO categorias (nombre, descripcion, icono) VALUES (?, ?, ?)", ['Pintura', 'Servicios de pintura interior y exterior', 'bi-brush']);
+    await db.run("INSERT INTO categorias (nombre, descripcion, icono) VALUES (?, ?, ?)", ['Albañilería', 'Construcción y reparación de estructuras', 'bi-bricks']);
+    await db.run("INSERT INTO categorias (nombre, descripcion, icono) VALUES (?, ?, ?)", ['Carpintería', 'Fabricación y reparación de muebles de madera', 'bi-hammer']);
+    console.log('✅ Categorías predeterminadas creadas');
   }
   // Ensure categoria column exists for older DBs
   try{

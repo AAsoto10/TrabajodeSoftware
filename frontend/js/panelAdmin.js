@@ -562,12 +562,231 @@ document.addEventListener('DOMContentLoaded', ()=>{
     }
   }
 
+  // ==================== Categorías ====================
+  async function loadCategorias(){
+    try{
+      const categorias = await window.apiRequest('/admin/categorias');
+      if (!categorias || categorias.length === 0){ 
+        admin.innerHTML = `
+          <div class="card p-4">
+            <div class="text-center text-muted mb-3">No hay categorías registradas</div>
+            <button class="btn btn-primary" onclick="showCategoriaModal()">
+              <i class="bi bi-plus-circle"></i> Agregar Categoría
+            </button>
+          </div>`; 
+        return; 
+      }
+      
+      let html = `
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h4>Gestión de Categorías de Servicios</h4>
+          <button class="btn btn-primary" onclick="showCategoriaModal()">
+            <i class="bi bi-plus-circle"></i> Agregar Categoría
+          </button>
+        </div>
+        <div class="row g-3">`;
+      
+      categorias.forEach(cat => {
+        const statusBadge = cat.activo ? 
+          '<span class="badge bg-success">Activa</span>' : 
+          '<span class="badge bg-secondary">Inactiva</span>';
+        
+        html += `
+          <div class="col-lg-4 col-md-6">
+            <div class="card h-100 shadow-sm">
+              <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                  <div>
+                    <i class="bi ${cat.icono || 'bi-tools'}" style="font-size: 2rem; color: #00d4ff;"></i>
+                  </div>
+                  ${statusBadge}
+                </div>
+                <h5 class="card-title">${cat.nombre}</h5>
+                <p class="card-text text-muted small">${cat.descripcion || 'Sin descripción'}</p>
+                <div class="d-flex gap-2 mt-3">
+                  <button class="btn btn-sm btn-outline-primary editCatBtn" data-id="${cat.id}">
+                    <i class="bi bi-pencil"></i> Editar
+                  </button>
+                  ${cat.activo ? 
+                    `<button class="btn btn-sm btn-outline-warning deactivateCatBtn" data-id="${cat.id}">
+                      <i class="bi bi-x-circle"></i> Desactivar
+                    </button>` :
+                    `<button class="btn btn-sm btn-outline-success activateCatBtn" data-id="${cat.id}">
+                      <i class="bi bi-check-circle"></i> Activar
+                    </button>`
+                  }
+                  <button class="btn btn-sm btn-outline-danger deleteCatBtn" data-id="${cat.id}">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>`;
+      });
+      
+      html += '</div>';
+      admin.innerHTML = html;
+      
+      // Event listeners para botones
+      document.querySelectorAll('.editCatBtn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const id = btn.dataset.id;
+          const cat = categorias.find(c => c.id == id);
+          showCategoriaModal(cat);
+        });
+      });
+      
+      document.querySelectorAll('.deactivateCatBtn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const id = btn.dataset.id;
+          window.showConfirm('¿Desactivar esta categoría?', async () => {
+            try{
+              await window.apiRequest(`/admin/categorias/${id}/desactivar`, { method: 'POST' });
+              loadCategorias();
+            } catch(err){ window.showError(err.message || 'Error al desactivar', 'Error'); }
+          });
+        });
+      });
+      
+      document.querySelectorAll('.activateCatBtn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const id = btn.dataset.id;
+          try{
+            await window.apiRequest(`/admin/categorias/${id}/activar`, { method: 'POST' });
+            loadCategorias();
+          } catch(err){ window.showError(err.message || 'Error al activar', 'Error'); }
+        });
+      });
+      
+      document.querySelectorAll('.deleteCatBtn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const id = btn.dataset.id;
+          window.showConfirm('¿Eliminar permanentemente esta categoría? Esta acción no se puede deshacer.', async () => {
+            try{
+              await window.apiRequest(`/admin/categorias/${id}`, { method: 'DELETE' });
+              loadCategorias();
+            } catch(err){ window.showError(err.message || 'Error al eliminar', 'Error'); }
+          });
+        });
+      });
+      
+    } catch(err){ 
+      admin.innerHTML = '<div class="alert alert-danger">Error cargando categorías</div>'; 
+    }
+  }
+  
+  window.showCategoriaModal = function(categoria = null){
+    const isEdit = !!categoria;
+    const iconos = [
+      'bi-lightning-charge', 'bi-droplet', 'bi-brush', 'bi-bricks', 'bi-hammer',
+      'bi-wrench', 'bi-tools', 'bi-paint-bucket', 'bi-house-door', 'bi-tree',
+      'bi-snow', 'bi-fire', 'bi-plug', 'bi-lightbulb', 'bi-wind'
+    ];
+    
+    let iconosHtml = '';
+    iconos.forEach(icono => {
+      const selected = categoria && categoria.icono === icono ? 'active' : '';
+      iconosHtml += `
+        <div class="col-3 text-center">
+          <button type="button" class="btn btn-outline-secondary icon-selector ${selected}" data-icon="${icono}">
+            <i class="bi ${icono}" style="font-size: 1.5rem;"></i>
+          </button>
+        </div>`;
+    });
+    
+    const modalHtml = `
+      <div class="modal fade" id="categoriaModal" tabindex="-1">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">${isEdit ? 'Editar' : 'Agregar'} Categoría</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+              <form id="categoriaForm">
+                <div class="mb-3">
+                  <label class="form-label">Nombre *</label>
+                  <input type="text" class="form-control" id="catNombre" value="${categoria ? categoria.nombre : ''}" required>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Descripción</label>
+                  <textarea class="form-control" id="catDescripcion" rows="3">${categoria ? categoria.descripcion || '' : ''}</textarea>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Icono *</label>
+                  <input type="hidden" id="catIcono" value="${categoria ? categoria.icono : 'bi-tools'}">
+                  <div class="row g-2" id="iconGrid">
+                    ${iconosHtml}
+                  </div>
+                </div>
+              </form>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+              <button type="button" class="btn btn-primary" id="saveCatBtn">${isEdit ? 'Guardar Cambios' : 'Crear Categoría'}</button>
+            </div>
+          </div>
+        </div>
+      </div>`;
+    
+    // Remover modal anterior si existe
+    const oldModal = document.getElementById('categoriaModal');
+    if (oldModal) oldModal.remove();
+    
+    // Insertar modal en el DOM
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    const modal = new bootstrap.Modal(document.getElementById('categoriaModal'));
+    
+    // Seleccionar icono
+    document.querySelectorAll('.icon-selector').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.icon-selector').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('catIcono').value = btn.dataset.icon;
+      });
+    });
+    
+    // Guardar
+    document.getElementById('saveCatBtn').addEventListener('click', async () => {
+      const nombre = document.getElementById('catNombre').value.trim();
+      const descripcion = document.getElementById('catDescripcion').value.trim();
+      const icono = document.getElementById('catIcono').value;
+      
+      if (!nombre) {
+        window.showError('El nombre es requerido', 'Error');
+        return;
+      }
+      
+      try {
+        const data = { nombre, descripcion, icono };
+        if (isEdit) {
+          await window.apiRequest(`/admin/categorias/${categoria.id}`, { 
+            method: 'PUT', 
+            body: JSON.stringify(data) 
+          });
+        } else {
+          await window.apiRequest('/admin/categorias', { 
+            method: 'POST', 
+            body: JSON.stringify(data) 
+          });
+        }
+        modal.hide();
+        loadCategorias();
+      } catch(err) {
+        window.showError(err.message || 'Error al guardar', 'Error');
+      }
+    });
+    
+    modal.show();
+  };
+
   // Wire nav tabs
   const navLinks = document.querySelectorAll('.nav-pills .nav-link');
   if (navLinks && navLinks.length){
     navLinks[0].addEventListener('click', (ev)=>{ ev.preventDefault(); navLinks.forEach(n=>n.classList.remove('active')); navLinks[0].classList.add('active'); loadPendientes(); });
     if (navLinks[1]) navLinks[1].addEventListener('click', (ev)=>{ ev.preventDefault(); navLinks.forEach(n=>n.classList.remove('active')); navLinks[1].classList.add('active'); loadProfesionales(); });
     if (navLinks[2]) navLinks[2].addEventListener('click', (ev)=>{ ev.preventDefault(); navLinks.forEach(n=>n.classList.remove('active')); navLinks[2].classList.add('active'); loadClientes(); });
+    if (navLinks[3]) navLinks[3].addEventListener('click', (ev)=>{ ev.preventDefault(); navLinks.forEach(n=>n.classList.remove('active')); navLinks[3].classList.add('active'); loadCategorias(); });
     if (navLinks[4]) navLinks[4].addEventListener('click', (ev)=>{ ev.preventDefault(); navLinks.forEach(n=>n.classList.remove('active')); navLinks[4].classList.add('active'); loadReclamos(); });
     if (navLinks[5]) navLinks[5].addEventListener('click', (ev)=>{ ev.preventDefault(); navLinks.forEach(n=>n.classList.remove('active')); navLinks[5].classList.add('active'); loadDatabase(); });
     if (navLinks[6]) navLinks[6].addEventListener('click', (ev)=>{ ev.preventDefault(); navLinks.forEach(n=>n.classList.remove('active')); navLinks[6].classList.add('active'); loadBackups(); });

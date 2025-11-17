@@ -12,8 +12,8 @@
     <nav class="site-header fixed-top">
       <div class="container d-flex align-items-center">
         <a class="navbar-brand" href="index.html">
-          <i class="bi bi-tools" style="font-size:28px;color:#6fd0ea"></i>
-          <span class="fw-bold h5 mb-0 text-dark">HogarFix</span>
+          <img src="images/logo.png" alt="HogarFix Logo" style="height:60px; width:auto; margin-right:12px; object-fit:contain;">
+          <span class="fw-bold h4 mb-0 text-dark">HogarFix</span>
         </a>
         <ul class="nav mx-auto">
           <li class="nav-item"><a class="nav-link" href="index.html">Inicio</a></li>
@@ -26,6 +26,13 @@
     </nav>
 
     <header class="hero d-flex align-items-center justify-content-center text-white">
+      <!-- Carrusel de fondo -->
+      <div class="hero-background">
+        <div class="hero-slide active" style="background-image: url('images/electricista.jpg');"></div>
+        <div class="hero-slide" style="background-image: url('images/pintor.jpg');"></div>
+        <div class="hero-slide" style="background-image: url('images/plomero.jpg');"></div>
+      </div>
+      
       <div class="text-center">
         <h1 class="display-4 fw-bold">Profesionales confiables<br>cerca de ti</h1>
         <p class="lead" style="color: whitesmoke; font-weight: 100; font-family: sans-serif;">Encuentra técnicos y profesionales de confianza para tu hogar:<br> electricidad, plomería, pintura y más. Revisa perfiles, compara precios, y solicita servicio en <br> pocos pasos.</p>
@@ -58,59 +65,10 @@
       <section class="categorias">
         <h2 class="text-center mb-4">Nuestros Servicios</h2>
         <div class="row g-4 services-grid">
-          <div class="col-md-6 col-lg-3">
-            <div class="card service-card h-100 text-center p-4">
-              <div class="service-icon mb-3 mx-auto">
-                <!-- icono: rayo -->
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M13 2L3 14h7l-1 8L21 10h-7l-1-8z" fill="#007BFF"/></svg>
-              </div>
-              <h5 class="fw-bold">Electricidad</h5>
-              <p class="small text-muted">Instalaciones, reparaciones y mantenimiento eléctrico profesional</p>
-              <div class="mt-auto d-grid">
-                <a href="profesionales.html?categoria=Electricidad" class="btn btn-primary rounded-pill">Ver Profesionales &rarr;</a>
-              </div>
-            </div>
-          </div>
-
-          <div class="col-md-6 col-lg-3">
-            <div class="card service-card h-100 text-center p-4">
-              <div class="service-icon mb-3 mx-auto">
-                <!-- icono: gota -->
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C12 2 7 8 7 12a5 5 0 0010 0c0-4-5-10-5-10z" fill="#007BFF"/></svg>
-              </div>
-              <h5 class="fw-bold">Plomería</h5>
-              <p class="small text-muted">Soluciones rápidas para fugas, instalaciones y sistemas hidráulicos</p>
-              <div class="mt-auto d-grid">
-                <a href="profesionales.html?categoria=Plomería" class="btn btn-primary rounded-pill">Ver Profesionales &rarr;</a>
-              </div>
-            </div>
-          </div>
-
-          <div class="col-md-6 col-lg-3">
-            <div class="card service-card h-100 text-center p-4">
-              <div class="service-icon mb-3 mx-auto">
-                <!-- icono: pincel -->
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20.7 4.3c-1.4-1.4-3.6-1.4-5 0L7 12.9V17h4.1l8.6-8.6c1.4-1.4 1.4-3.6 0-5z" fill="#007BFF"/></svg>
-              </div>
-              <h5 class="fw-bold">Pintura</h5>
-              <p class="small text-muted">Pintura profesional para interiores y exteriores</p>
-              <div class="mt-auto d-grid">
-                <a href="profesionales.html?categoria=Pintura" class="btn btn-primary rounded-pill">Ver Profesionales &rarr;</a>
-              </div>
-            </div>
-          </div>
-
-          <div class="col-md-6 col-lg-3">
-            <div class="card service-card h-100 text-center p-4">
-              <div class="service-icon mb-3 mx-auto">
-                <!-- icono: martillo -->
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M21 13l-9-9-4 4 9 9 4-4z" fill="#007BFF"/></svg>
-              </div>
-              <h5 class="fw-bold">Albañilería</h5>
-              <p class="small text-muted">Construcción, remodelación y reparación de estructuras</p>
-              <div class="mt-auto d-grid">
-                <a href="profesionales.html?categoria=Albañilería" class="btn btn-primary rounded-pill">Ver Profesionales &rarr;</a>
-              </div>
+          <!-- Las categorías se cargarán dinámicamente desde la base de datos -->
+          <div class="col-12 text-center">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Cargando servicios...</span>
             </div>
           </div>
         </div>

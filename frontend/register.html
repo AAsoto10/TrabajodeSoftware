@@ -12,8 +12,8 @@
     <nav class="site-header fixed-top">
       <div class="container d-flex align-items-center">
         <a class="navbar-brand" href="index.html">
-          <i class="bi bi-tools" style="font-size:28px;color:#6fd0ea"></i>
-          <span class="fw-bold h5 mb-0 text-dark">HogarFix</span>
+          <img src="images/logo.png" alt="HogarFix Logo" style="height:60px; width:auto; margin-right:12px; object-fit:contain;">
+          <span class="fw-bold h4 mb-0 text-dark">HogarFix</span>
         </a>
         <ul class="nav mx-auto">
           <li class="nav-item"><a class="nav-link" href="index.html">Inicio</a></li>
@@ -25,38 +25,43 @@
       </div>
     </nav>
 
-    <div class="container d-flex align-items-center justify-content-center" style="min-height:80vh;">
-      <div class="card p-4 shadow-sm" style="max-width:460px; width:100%; border-radius:14px;">
-        <div class="text-center mb-3">
-          <i class="bi bi-person-circle" style="font-size:48px;color:#6fd0ea"></i>
-          <h3 class="card-title mt-2">Crear cuenta</h3>
-          <p class="text-muted">Regístrate como Cliente o Profesional</p>
+    <div class="container d-flex align-items-center justify-content-center" style="min-height:85vh; padding:2rem 0;">
+      <div class="card p-5" style="max-width:500px; width:100%;">
+        <div class="text-center mb-4">
+          <div style="width:80px; height:80px; margin:0 auto 1rem; background:linear-gradient(135deg, #00d4ff 0%, #00a8cc 100%); border-radius:50%; display:flex; align-items:center; justify-content:center; box-shadow:0 8px 24px rgba(0,212,255,0.3);">
+            <i class="bi bi-person-plus-fill" style="font-size:36px;color:#fff"></i>
+          </div>
+          <h3 class="card-title">Crear cuenta</h3>
+          <p class="text-muted">Únete a la comunidad de HogarFix</p>
         </div>
         <form id="registerForm">
-          <div class="mb-3">
-            <label class="form-label">Nombre</label>
-            <input type="text" name="nombre" class="form-control form-control-lg" placeholder="Nombre" required>
+          <div class="mb-4">
+            <label class="form-label"><i class="bi bi-person-fill"></i> Nombre completo</label>
+            <input type="text" name="nombre" class="form-control form-control-lg" placeholder="Tu nombre completo" required>
           </div>
-          <div class="mb-3">
-            <label class="form-label">Email</label>
-            <input type="email" name="email" class="form-control form-control-lg" placeholder="correo" required>
+          <div class="mb-4">
+            <label class="form-label"><i class="bi bi-envelope-fill"></i> Email</label>
+            <input type="email" name="email" class="form-control form-control-lg" placeholder="correo@ejemplo.com" required>
           </div>
-          <div class="mb-3">
-            <label class="form-label">Contraseña</label>
-            <input type="password" name="password" id="password" class="form-control form-control-lg" placeholder="Contraseña" required>
+          <div class="mb-4">
+            <label class="form-label"><i class="bi bi-lock-fill"></i> Contraseña</label>
+            <input type="password" name="password" id="password" class="form-control form-control-lg" placeholder="Mínimo 6 caracteres" required>
           </div>
-          <div class="mb-3">
-            <label class="form-label">Quiero registrarme como</label>
+          <div class="mb-4">
+            <label class="form-label"><i class="bi bi-briefcase-fill"></i> Quiero registrarme como</label>
             <select name="role" id="roleSelect" class="form-select form-select-lg">
-              <option value="cliente">Cliente</option>
-              <option value="profesional">Profesional</option>
+              <option value="cliente">👤 Cliente - Solicitar servicios</option>
+              <option value="profesional">🔧 Profesional - Ofrecer servicios</option>
             </select>
           </div>
-          <div class="d-grid mt-3">
-            <button class="btn btn-primary btn-lg">Registrarse</button>
+          <div class="d-grid mt-4">
+            <button class="btn btn-primary btn-lg" type="submit">Crear mi cuenta</button>
           </div>
-          <div class="text-center mt-3 small text-muted">¿Ya tienes cuenta? <a href="login.html">Inicia sesión</a></div>
         </form>
+        <div class="divider">o</div>
+        <div class="text-center">
+          <p class="text-muted mb-0">¿Ya tienes cuenta? <a href="login.html">Inicia sesión aquí</a></p>
+        </div>
       </div>
     </div>
 

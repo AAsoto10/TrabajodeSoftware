@@ -22,6 +22,33 @@ document.addEventListener('DOMContentLoaded', async ()=>{
   // manage editing state
   let currentEditingProfileId = null;
 
+  // Cargar categorías dinámicamente en el select
+  async function loadCategorias() {
+    try {
+      const response = await fetch('http://localhost:3000/api/categorias/activas');
+      if (!response.ok) throw new Error('Error al cargar categorías');
+      
+      const categorias = await response.json();
+      const selectCategoria = document.getElementById('p_categoria');
+      
+      if (categorias && categorias.length > 0) {
+        selectCategoria.innerHTML = '';
+        categorias.forEach(cat => {
+          const option = document.createElement('option');
+          option.value = cat.nombre;
+          option.textContent = cat.nombre;
+          selectCategoria.appendChild(option);
+        });
+      }
+    } catch(err) {
+      console.error('Error cargando categorías:', err);
+      // Mantener opciones por defecto si hay error
+    }
+  }
+
+  // Cargar categorías al iniciar
+  await loadCategorias();
+
   // fetch and render profiles for this user
   async function fetchAndRenderProfiles(){
     try{
@@ -64,12 +91,17 @@ document.addEventListener('DOMContentLoaded', async ()=>{
         const profile = profiles.find(x=>String(x.id) === String(id));
         if (!profile) return window.showError('Perfil no encontrado', 'Error');
         currentEditingProfileId = profile.id;
-        document.getElementById('p_categoria').value = profile.categoria || 'Electricidad';
+        const selectCategoria = document.getElementById('p_categoria');
+        if (profile.categoria) {
+          selectCategoria.value = profile.categoria;
+        }
         document.getElementById('p_tarifa').value = profile.tarifa || '';
         document.getElementById('p_zona').value = profile.zona || '';
         document.getElementById('p_bio').value = profile.biografia || '';
         document.getElementById('p_certs').value = profile.certificados || '';
         document.getElementById('p_avatar').value = profile.avatar || '';
+        document.getElementById('p_avatar_file').value = '';
+        document.getElementById('avatarPreview').style.display = 'none';
         if (profileModalTitle) profileModalTitle.textContent = 'Editar perfil profesional';
         if (profileSaveBtn) profileSaveBtn.textContent = 'Guardar perfil';
         profileModal.show();
@@ -97,26 +129,58 @@ document.addEventListener('DOMContentLoaded', async ()=>{
   // Insert mode: always open empty form
   profileBtn.addEventListener('click', ()=>{
     currentEditingProfileId = null;
-    document.getElementById('p_categoria').value = 'Electricidad';
+    const selectCategoria = document.getElementById('p_categoria');
+    if (selectCategoria.options.length > 0) {
+      selectCategoria.selectedIndex = 0;
+    }
     document.getElementById('p_tarifa').value = '';
     document.getElementById('p_zona').value = '';
     document.getElementById('p_bio').value = '';
     document.getElementById('p_certs').value = '';
     document.getElementById('p_avatar').value = '';
+    document.getElementById('p_avatar_file').value = '';
+    document.getElementById('avatarPreview').style.display = 'none';
     if (profileModalTitle) profileModalTitle.textContent = 'Insertar perfil profesional';
     if (profileSaveBtn) profileSaveBtn.textContent = 'Insertar perfil';
     profileModal.show();
   });
 
+  // Preview de imagen cuando se selecciona un archivo
+  document.getElementById('p_avatar_file').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        document.getElementById('avatarPreviewImg').src = event.target.result;
+        document.getElementById('avatarPreview').style.display = 'block';
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+
   profileForm.addEventListener('submit', async (e)=>{
     e.preventDefault();
+    
+    // Determinar el avatar (URL o archivo)
+    let avatarValue = document.getElementById('p_avatar').value;
+    const avatarFile = document.getElementById('p_avatar_file').files[0];
+    
+    if (avatarFile) {
+      // Si hay un archivo, convertirlo a base64
+      const reader = new FileReader();
+      avatarValue = await new Promise((resolve) => {
+        reader.onload = (event) => resolve(event.target.result);
+        reader.readAsDataURL(avatarFile);
+      });
+    }
+    
     const body = {
       categoria: document.getElementById('p_categoria').value,
       tarifa: Number(document.getElementById('p_tarifa').value)||0,
       zona: document.getElementById('p_zona').value,
       biografia: document.getElementById('p_bio').value,
       certificados: document.getElementById('p_certs').value,
-      avatar: document.getElementById('p_avatar').value
+      avatar: avatarValue
     };
     try{
       if (currentEditingProfileId){
@@ -232,6 +296,7 @@ document.addEventListener('DOMContentLoaded', async ()=>{
               <div class="mt-3 small text-muted"><i class="bi bi-person-fill"></i> ${cliente}</div>
               ${direccion ? `<div class="small text-muted"><i class="bi bi-geo-alt-fill"></i> ${direccion}</div>` : ''}
               ${fecha ? `<div class="small text-muted"><i class="bi bi-calendar-event"></i> ${formatDate(fecha)}</div>` : ''}
+              ${p.cliente_id ? `<div class="mt-2"><button class="btn btn-sm btn-outline-info chatBtn" data-pedido-id="${p.id}" data-destinatario-id="${p.cliente_id}"><i class="bi bi-chat-dots"></i> Enviar mensaje</button></div>` : ''}
             </div>
             <div class="text-end">${actions}</div>
           </div>`;
@@ -304,4 +369,17 @@ document.addEventListener('DOMContentLoaded', async ()=>{
   }catch(err){
     pedidosEl.innerHTML = '<div class="alert alert-warning">No se pudieron cargar tus pedidos. Inténtalo más tarde.</div>';
   }
+
+  // Event delegation para botones de chat
+  document.addEventListener('click', (ev) => {
+    const chatBtn = ev.target.closest('.chatBtn');
+    if (!chatBtn) return;
+    
+    const pedidoId = chatBtn.dataset.pedidoId;
+    const destinatarioId = chatBtn.dataset.destinatarioId;
+    
+    if (window.chatManager && pedidoId && destinatarioId) {
+      window.chatManager.openChatForPedido(pedidoId, destinatarioId);
+    }
+  });
 });

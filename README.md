@@ -1,45 +1,68 @@
-# TrabajodeSoftware
-Instrucciones para ejecutar el proyecto localmente.
+# TrabajodeSoftware - HogarFix
 
-Backend (Node.js + SQLite)
+Plataforma de servicios profesionales para el hogar.
 
-1. Abrir terminal en la carpeta `backend`:
+## 🚀 Cómo iniciar el proyecto localmente
 
+### Requisitos previos
+- Node.js (v14 o superior)
+- npm
+
+### Pasos para iniciar el servidor
+
+1. **Navegar a la carpeta del proyecto:**
 ```bash
-cd /e/software/hogar-fix/backend
+cd e:/software/hogar-fix/TrabajodeSoftware/backend
+```
+
+2. **Instalar dependencias (solo la primera vez):**
+```bash
 npm install
 ```
 
-2. Iniciar servidor:
-
+3. **Iniciar el servidor:**
 ```bash
 npm start
 ```
 
-El servidor queda escuchando en `http://localhost:3000` y sirve el frontend estático en `/frontend`.
+El servidor quedará escuchando en `http://localhost:3000` y servirá automáticamente el frontend estático desde `/frontend`.
+
+### ⚠️ Nota importante
+- Si el servidor ya está corriendo, primero detenlo presionando `Ctrl + C` en la terminal
+- En Windows, si el puerto 3000 está ocupado, ejecuta: `taskkill //F //IM node.exe`
 
 Seed:
-- Se crea automáticamente un admin si no existe:
-  - Email: `admin@hogarfix.local`
-  - Password: `admin123`
+- Se crea automáticamente un usuario admin al iniciar el servidor por primera vez:
+  - **Email:** `admin@hogarfix.local`
+  - **Password:** `admin123`
 
-Frontend
+## 🌐 Acceder a la aplicación
 
-Abrir en el navegador:
+Una vez iniciado el servidor, abre tu navegador en:
 
-- `http://localhost:3000/frontend/index.html` - Landing
-- `http://localhost:3000/frontend/login.html` - Login
-- `http://localhost:3000/frontend/register.html` - Registro
+- **Landing page:** http://localhost:3000/frontend/index.html
+- **Login:** http://localhost:3000/frontend/login.html
+- **Registro:** http://localhost:3000/frontend/register.html
+- **Panel Admin:** http://localhost:3000/frontend/panel-admin.html
 
-Flujo principal
+## 📋 Flujo principal de uso
 
-- Registrar como profesional (seleccionar 'Profesional' y completar categoría).
-- El admin (iniciar sesión con admin@hogarfix.local) debe aprobar al profesional desde `panel-admin.html`.
-- Clientes pueden ver profesionales en `profesionales.html?categoria=...` y solicitar servicios.
-- Profesionales verán pedidos asignados en `panel-profesional.html` y pueden marcarlos como completados, lo que actualiza su saldo (85% del precio).
+## 📋 Flujo principal de uso
 
-Notas técnicas
+1. **Registrar como profesional:** Seleccionar 'Profesional' en el registro y completar categoría
+2. **Aprobar profesional:** El admin debe iniciar sesión y aprobar profesionales desde `panel-admin.html`
+3. **Solicitar servicios:** Los clientes pueden ver profesionales en `profesionales.html?categoria=...` y solicitar servicios
+4. **Completar trabajos:** Los profesionales verán pedidos asignados en `panel-profesional.html` y pueden marcarlos como completados, actualizando su saldo (85% del precio)
 
-- API base: `http://localhost:3000/api`.
-- Tokens JWT almacenados en `localStorage` bajo `token`.
-- DB: `backend/database.db` (SQLite).
+## 🔧 Notas técnicas
+
+- **API base:** `http://localhost:3000/api`
+- **Autenticación:** Tokens JWT almacenados en `localStorage` bajo la clave `token`
+- **Base de datos:** `backend/database.db` (SQLite)
+- **Backup automático:** Se crea un backup de la base de datos cada 24 horas
+
+## 🌍 Despliegue en producción
+
+El proyecto está desplegado en Render:
+- **URL de producción:** https://hogarfix.onrender.com
+- **Configuración:** Ver archivo `render.yaml` en la raíz del proyecto

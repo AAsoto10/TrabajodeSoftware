@@ -12,8 +12,8 @@
     <nav class="site-header fixed-top">
       <div class="container d-flex align-items-center">
         <a class="navbar-brand" href="index.html">
-          <i class="bi bi-tools" style="font-size:28px;color:#6fd0ea"></i>
-          <span class="fw-bold h5 mb-0 text-dark">HogarFix</span>
+          <img src="images/logo.png" alt="HogarFix Logo" style="height:60px; width:auto; margin-right:12px; object-fit:contain;">
+          <span class="fw-bold h4 mb-0 text-dark">HogarFix</span>
         </a>
         <ul class="nav mx-auto">
           <li class="nav-item"><a class="nav-link" href="index.html">Inicio</a></li>
@@ -26,23 +26,26 @@
     </nav>
 
     <div class="container d-flex align-items-center justify-content-center" style="min-height:80vh;">
-      <div class="card p-4" style="max-width:420px; width:100%;">
-        <h3 class="card-title text-center mb-3">Iniciar Sesión</h3>
+      <div class="card p-5" style="max-width:450px; width:100%;">
+        <h3 class="card-title text-center mb-4">Iniciar Sesión</h3>
+        <p class="text-center text-muted mb-4">Accede a tu cuenta de HogarFix</p>
         <form id="loginForm">
-          <div class="mb-3">
-            <label class="form-label">Email</label>
-            <input type="email" name="email" class="form-control" required>
+          <div class="mb-4">
+            <label class="form-label"><i class="bi bi-envelope-fill"></i> Email</label>
+            <input type="email" name="email" class="form-control" placeholder="correo@ejemplo.com" required>
           </div>
-          <div class="mb-3">
-            <label class="form-label">Contraseña</label>
-            <input type="password" name="password" class="form-control" required>
+          <div class="mb-4">
+            <label class="form-label"><i class="bi bi-lock-fill"></i> Contraseña</label>
+            <input type="password" name="password" class="form-control" placeholder="••••••••" required>
           </div>
           <div class="d-grid">
-            <button class="btn btn-primary">Entrar</button>
+            <button class="btn btn-primary" type="submit">Entrar</button>
           </div>
         </form>
-        <div class="mt-3 text-center">
-          <a href="register.html">Crear cuenta</a>
+        <div class="divider">o</div>
+        <div class="text-center">
+          <p class="text-muted mb-2">¿No tienes cuenta?</p>
+          <a href="register.html" class="btn btn-outline-info rounded-pill px-4">Crear cuenta nueva</a>
         </div>
       </div>
     </div>
