@@ -87,11 +87,11 @@ document.addEventListener('DOMContentLoaded', ()=>{
       const precio = Number(document.getElementById('precio').value);
       try{
         await window.apiRequest('/pedidos',{method:'POST', body: JSON.stringify({categoria, descripcion, precio})});
-        alert('Pedido creado correctamente. Espera a que el profesional marque listo para pago.');
+        window.showSuccess('Pedido creado correctamente.<br>Espera a que el profesional marque listo para pago.', '¡Solicitud Enviada!');
         document.getElementById('descripcion').value = '';
         document.getElementById('precio').value = '';
-        await loadPedidos();
-      }catch(err){ alert(err.message||'Error al crear pedido'); }
+        setTimeout(() => loadPedidos(), 800);
+      }catch(err){ window.showError(err.message||'Error al crear pedido', 'Error'); }
     });
   }
 
@@ -101,16 +101,30 @@ document.addEventListener('DOMContentLoaded', ()=>{
     if (!btn) return;
     const id = btn.dataset.id;
     const defaultPrice = btn.dataset.price ? Number(btn.dataset.price) : 0;
-    const input = prompt('Ingrese monto a pagar (ej: 150.50):', String(defaultPrice || ''));
-    if (input === null) return; // cancel
-    const amount = Number(input);
-    if (isNaN(amount) || amount <= 0) return alert('Monto inválido');
-    if (!confirm(`Confirmar pago simulado de $${amount.toFixed(2)}?`)) return;
-    try{
-      await window.apiRequest(`/pedidos/${id}/pay`, { method: 'POST', body: JSON.stringify({ amount }) });
-      alert('Pago simulado y pedido completado');
-      await loadPedidos();
-    }catch(err){ alert(err.message||'Error al pagar'); }
+    
+    window.showModal({
+      title: 'Procesar Pago',
+      message: `<div class="mb-3">
+        <label class="form-label">Ingrese el monto a pagar:</label>
+        <input type="number" class="form-control" id="paymentAmount" value="${defaultPrice || ''}" step="0.01" min="0.01">
+      </div>`,
+      type: 'info',
+      confirmText: 'Pagar',
+      cancelText: 'Cancelar',
+      showCancel: true,
+      onConfirm: async () => {
+        const amount = Number(document.getElementById('paymentAmount').value);
+        if (isNaN(amount) || amount <= 0) {
+          window.showError('Monto inválido', 'Error');
+          return;
+        }
+        try{
+          await window.apiRequest(`/pedidos/${id}/pay`, { method: 'POST', body: JSON.stringify({ amount }) });
+          window.showSuccess(`Pago de Bs. ${amount.toFixed(2)} procesado correctamente`, '¡Pago Exitoso!');
+          setTimeout(() => loadPedidos(), 800);
+        }catch(err){ window.showError(err.message||'Error al procesar el pago', 'Error'); }
+      }
+    });
   });
 
   // Calificar: abrir modal cuando cliente da click en calificar

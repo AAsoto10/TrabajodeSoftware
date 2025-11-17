@@ -62,7 +62,7 @@ document.addEventListener('DOMContentLoaded', async ()=>{
         // load profile data
         const profiles = await window.apiRequest('/profiles/mine');
         const profile = profiles.find(x=>String(x.id) === String(id));
-        if (!profile) return alert('Perfil no encontrado');
+        if (!profile) return window.showError('Perfil no encontrado', 'Error');
         currentEditingProfileId = profile.id;
         document.getElementById('p_categoria').value = profile.categoria || 'Electricidad';
         document.getElementById('p_tarifa').value = profile.tarifa || '';
@@ -77,12 +77,13 @@ document.addEventListener('DOMContentLoaded', async ()=>{
 
       document.querySelectorAll('.deleteProfileBtn').forEach(btn=>btn.addEventListener('click', async (ev)=>{
         const id = ev.currentTarget.dataset.id;
-        if (!confirm('Eliminar perfil profesional?')) return;
-        try{
-          await window.apiRequest(`/profiles/${id}`, { method: 'DELETE' });
-          alert('Perfil eliminado');
-          fetchAndRenderProfiles();
-        }catch(err){ alert(err.message || 'Error al eliminar'); }
+        window.showConfirm('¿Eliminar este perfil profesional?', async () => {
+          try{
+            await window.apiRequest(`/profiles/${id}`, { method: 'DELETE' });
+            window.showSuccess('Perfil eliminado correctamente');
+            setTimeout(() => fetchAndRenderProfiles(), 600);
+          }catch(err){ window.showError(err.message || 'Error al eliminar el perfil', 'Error'); }
+        });
       }));
 
     }catch(err){
@@ -120,17 +121,19 @@ document.addEventListener('DOMContentLoaded', async ()=>{
     try{
       if (currentEditingProfileId){
         await window.apiRequest(`/profiles/${currentEditingProfileId}`, { method: 'PUT', body: JSON.stringify(body) });
-        alert('Perfil actualizado');
+        window.showSuccess('Perfil actualizado correctamente', '¡Actualizado!');
       }else{
         await window.apiRequest('/profiles', { method: 'POST', body: JSON.stringify(body) });
-        alert('Perfil creado');
+        window.showSuccess('Perfil creado correctamente', '¡Perfil Creado!');
       }
       profileModal.hide();
       // refresh list
-      await fetchAndRenderProfiles();
-      window.dispatchEvent(new Event('profileUpdated'));
+      setTimeout(async () => {
+        await fetchAndRenderProfiles();
+        window.dispatchEvent(new Event('profileUpdated'));
+      }, 600);
     }catch(err){
-      alert(err.message||'Error guardando perfil');
+      window.showError(err.message||'Error guardando perfil', 'Error');
     }
   });
 
@@ -241,33 +244,42 @@ document.addEventListener('DOMContentLoaded', async ()=>{
         const id = ev.currentTarget.dataset.id;
         try{
           await window.apiRequest(`/pedidos/${id}/assign`, { method: 'POST' });
-          alert('Solicitud aceptada');
+          window.showSuccess('Solicitud aceptada correctamente', '¡Aceptado!');
           // refresh pedidos list
-          const newPedidos = await window.apiRequest('/pedidos/profesional');
-          renderStatsAndTabs(newPedidos);
-        }catch(err){ alert(err.message||'Error al aceptar'); }
+          setTimeout(async () => {
+            const newPedidos = await window.apiRequest('/pedidos/profesional');
+            renderStatsAndTabs(newPedidos);
+          }, 600);
+        }catch(err){ window.showError(err.message||'Error al aceptar la solicitud', 'Error'); }
       }));
 
       // attach reject handlers for pendientes
       tabPendientes.querySelectorAll('.rejectBtn').forEach(btn=>btn.addEventListener('click', async (ev)=>{
         const id = ev.currentTarget.dataset.id;
-        if (!confirm('¿Rechazar esta solicitud?')) return;
-        try{
-          await window.apiRequest(`/pedidos/${id}/reject`, { method: 'POST' });
-          alert('Solicitud rechazada');
-          const newPedidos = await window.apiRequest('/pedidos/profesional');
-          renderStatsAndTabs(newPedidos);
-        }catch(err){ alert(err.message||'Error al rechazar'); }
+        window.showConfirm('¿Estás seguro de que deseas rechazar esta solicitud?', async () => {
+          try{
+            await window.apiRequest(`/pedidos/${id}/reject`, { method: 'POST' });
+            window.showSuccess('Solicitud rechazada', 'Rechazado');
+            setTimeout(async () => {
+              const newPedidos = await window.apiRequest('/pedidos/profesional');
+              renderStatsAndTabs(newPedidos);
+            }, 600);
+          }catch(err){ window.showError(err.message||'Error al rechazar la solicitud', 'Error'); }
+        }, '¿Rechazar Solicitud?');
       }));
 
       // attach ready handlers for activos (marcar pendiente de pago)
       tabActivos.querySelectorAll('.readyBtn').forEach(btn=>btn.addEventListener('click', async (ev)=>{
         const id = ev.currentTarget.dataset.id;
-        try{ await window.apiRequest(`/pedidos/${id}/ready`, { method:'POST' }); alert('Pedido marcado pendiente de pago');
-          const newPedidos = await window.apiRequest('/pedidos/profesional');
-          renderStatsAndTabs(newPedidos);
+        try{ 
+          await window.apiRequest(`/pedidos/${id}/ready`, { method:'POST' }); 
+          window.showSuccess('Pedido marcado como <strong>pendiente de pago</strong>', '¡Listo!');
+          setTimeout(async () => {
+            const newPedidos = await window.apiRequest('/pedidos/profesional');
+            renderStatsAndTabs(newPedidos);
+          }, 600);
         }
-        catch(err){ alert(err.message||'Error al marcar listo para pago'); }
+        catch(err){ window.showError(err.message||'Error al marcar listo para pago', 'Error'); }
       }));
 
       // render ratings into tab-calificaciones
@@ -280,7 +292,8 @@ document.addEventListener('DOMContentLoaded', async ()=>{
             const card = document.createElement('div'); card.className='card p-3 mb-2';
             const fecha = r.created_at ? formatDate(r.created_at) : '';
             const cliente = r.cliente_nombre || 'Cliente';
-            card.innerHTML = `<div class="d-flex justify-content-between align-items-center"><div><strong>${r.rating} ★</strong> <div class="small text-muted">por ${cliente} ${fecha ? ' - '+fecha : ''}</div></div></div><div class="mt-2">${r.comentario || ''}</div>`;
+            const categoriaServicio = r.categoria ? `<span class="badge bg-secondary">${r.categoria}</span>` : '';
+            card.innerHTML = `<div class="d-flex justify-content-between align-items-center mb-2"><div><strong>${r.rating} ★</strong> ${categoriaServicio}</div><div class="small text-muted">${fecha}</div></div><div class="small text-muted mb-2">Cliente: ${cliente}</div><div>${r.comentario || '<em class="text-muted">Sin comentario</em>'}</div>`;
             ratingsContainer.appendChild(card);
           });
         }

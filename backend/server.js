@@ -10,9 +10,12 @@ const userController = require('./src/controllers/userController');
 const profilesController = require('./src/controllers/profilesController');
 const ratingController = require('./src/controllers/ratingController');
 const reclamoController = require('./src/controllers/reclamoController');
+const backupController = require('./src/controllers/backupController');
+const databaseController = require('./src/controllers/databaseController');
 
 const authMiddleware = require('./src/middleware/authMiddleware');
 const adminMiddleware = require('./src/middleware/adminMiddleware');
+const backupService = require('./src/services/backupService');
 
 const app = express();
 app.use(express.json());
@@ -23,15 +26,20 @@ app.use('/frontend', express.static(path.join(__dirname, '..', 'frontend')));
 // API routes
 app.use('/api/auth', authController);
 app.use('/api/admin', authMiddleware, adminMiddleware, adminController);
+app.use('/api/admin', authMiddleware, adminMiddleware, backupController);
+app.use('/api/admin', authMiddleware, adminMiddleware, databaseController);
 app.use('/api/pedidos', authMiddleware, pedidoController);
 app.use('/api/users', userController);
 app.use('/api/profiles', profilesController);
-app.use('/api/profesionales', authMiddleware, ratingController);
+app.use('/api/profesionales', ratingController); // Ahora público, sin authMiddleware
 app.use('/api/reclamos', authMiddleware, reclamoController);
 
 const PORT = process.env.PORT || 3000;
 
 initDB().then(()=>{
+  // Programar backups automáticos cada 24 horas, manteniendo últimos 10
+  backupService.scheduleBackups(24, 10);
+  
   app.listen(PORT, ()=>console.log('Server listening on', PORT));
 }).catch(err=>{
   console.error('DB init failed', err);

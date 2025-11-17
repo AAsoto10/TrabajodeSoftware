@@ -12,12 +12,14 @@ document.addEventListener('DOMContentLoaded', ()=>{
         localStorage.setItem('token', res.token);
         // store minimal user info for header display
         if (res.user) localStorage.setItem('user', JSON.stringify(res.user));
-        alert('Login correcto');
         const role = res.user && res.user.role ? res.user.role : 'cliente';
-        if (role === 'admin') window.location = 'panel-admin.html';
-        else if (role === 'profesional') window.location = 'panel-profesional.html';
-        else window.location = 'panel-cliente.html';
-      }catch(err){ alert(err.message || 'Error'); }
+        window.showSuccess('Has iniciado sesión correctamente', 'Bienvenido');
+        setTimeout(() => {
+          if (role === 'admin') window.location = 'panel-admin.html';
+          else if (role === 'profesional') window.location = 'panel-profesional.html';
+          else window.location = 'panel-cliente.html';
+        }, 800);
+      }catch(err){ window.showError(err.message || 'Error al iniciar sesión', 'Error de Login'); }
     });
   }
 
@@ -39,10 +41,10 @@ document.addEventListener('DOMContentLoaded', ()=>{
           else window.location = 'panel-cliente.html';
         }catch(loginErr){
           // If auto-login fails, fallback to login page
-          alert('Registro OK. Por favor inicia sesión.');
-          window.location = 'login.html';
+          window.showSuccess('Registro exitoso. Por favor inicia sesión.', '¡Cuenta Creada!');
+          setTimeout(() => window.location = 'login.html', 1500);
         }
-      }catch(err){ alert(err.message||'Error'); }
+      }catch(err){ window.showError(err.message||'Error al registrar la cuenta', 'Error de Registro'); }
     });
   }
   // No mostramos categoría en el registro; la completará el profesional en su panel

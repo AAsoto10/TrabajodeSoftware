@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', async ()=>{
       categoriaField.classList.remove('d-none');
       categoriaEl.value = user.categoria || '';
     }
-  }catch(err){ alert('Error cargando usuario: ' + (err.message||err)); }
+  }catch(err){ window.showError('Error cargando usuario: ' + (err.message||err), 'Error'); }
 
   const form = document.getElementById('profileForm');
   form.addEventListener('submit', async (e)=>{
@@ -35,9 +35,11 @@ document.addEventListener('DOMContentLoaded', async ()=>{
       const stored = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')) : {};
       stored.nombre = updated.nombre;
       localStorage.setItem('user', JSON.stringify(stored));
-      alert('Perfil actualizado');
+      window.showSuccess('Perfil actualizado correctamente', '¡Actualizado!');
       // update header display
-      const event = new Event('profileUpdated'); window.dispatchEvent(event);
-    }catch(err){ alert('Error: ' + (err.message||err)); }
+      setTimeout(() => {
+        const event = new Event('profileUpdated'); window.dispatchEvent(event);
+      }, 600);
+    }catch(err){ window.showError('Error: ' + (err.message||err), 'Error'); }
   });
 });

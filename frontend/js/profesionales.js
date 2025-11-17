@@ -78,14 +78,20 @@ document.addEventListener('DOMContentLoaded', async ()=>{
                 <div class="h5 mb-0">Bs. ${p.tarifa || 0}</div>
                 <div class="small text-muted">por hora</div>
               </div>
-              <div>
+              <div class="d-flex gap-2">
+                ${totalRatings > 0 ? `<button class="btn btn-outline-warning btn-sm verCalificacionesBtn" 
+                  data-user-id="${p.usuario_id}" 
+                  data-nombre="${p.usuario_nombre}"
+                  data-categoria="${p.categoria}">
+                  <i class="bi bi-star-fill"></i> Ver reseñas
+                </button>` : ''}
                 <button class="btn btn-info solicitarBtn" 
                   data-profile-id="${p.id}" 
                   data-user-id="${p.usuario_id}" 
                   data-nombre="${p.usuario_nombre}"
                   data-categoria="${p.categoria}"
                   data-tarifa="${p.tarifa}">
-                  Solicitar: ${p.categoria || 'Servicio'}
+                  Solicitar
                 </button>
               </div>
             </div>
@@ -94,6 +100,58 @@ document.addEventListener('DOMContentLoaded', async ()=>{
       });
 
       const solicitarModal = new bootstrap.Modal(document.getElementById('solicitarModal'));
+      const calificacionesModal = new bootstrap.Modal(document.getElementById('calificacionesModal'));
+      
+      // Event listener para botones de ver calificaciones
+      document.querySelectorAll('.verCalificacionesBtn').forEach(btn=>{
+        btn.addEventListener('click', async ()=>{
+          const userId = btn.dataset.userId;
+          const nombre = btn.dataset.nombre;
+          const profCategoria = btn.dataset.categoria;
+          
+          document.getElementById('calificacionesNombre').textContent = nombre;
+          document.getElementById('calificacionesCategoria').textContent = profCategoria;
+          
+          const calificacionesList = document.getElementById('calificacionesList');
+          calificacionesList.innerHTML = '<div class="text-center"><div class="spinner-border" role="status"></div></div>';
+          
+          calificacionesModal.show();
+          
+          try {
+            // Cargar calificaciones de esta categoría específica
+            const ratings = await window.apiRequest(`/profesionales/${userId}/calificaciones?categoria=${encodeURIComponent(profCategoria)}`);
+            
+            if (!ratings || ratings.length === 0) {
+              calificacionesList.innerHTML = '<div class="alert alert-info">No hay calificaciones aún para este servicio.</div>';
+              return;
+            }
+            
+            calificacionesList.innerHTML = '';
+            ratings.forEach(r => {
+              const fecha = r.created_at ? new Date(r.created_at).toLocaleDateString('es-ES') : '';
+              const estrellas = generarEstrellas(r.rating || 0);
+              
+              const card = document.createElement('div');
+              card.className = 'card mb-3 p-3';
+              card.innerHTML = `
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                  <div>
+                    <div class="text-warning h5 mb-0">${estrellas}</div>
+                    <small class="text-muted">${fecha}</small>
+                  </div>
+                  <span class="badge bg-secondary">${r.categoria || profCategoria}</span>
+                </div>
+                ${r.comentario ? `<p class="mb-0">${r.comentario}</p>` : '<p class="text-muted mb-0"><em>Sin comentario</em></p>'}
+              `;
+              calificacionesList.appendChild(card);
+            });
+          } catch(err) {
+            calificacionesList.innerHTML = '<div class="alert alert-danger">Error al cargar calificaciones.</div>';
+            console.error(err);
+          }
+        });
+      });
+      
       document.querySelectorAll('.solicitarBtn').forEach(btn=>{
         btn.addEventListener('click', ()=>{
           const userId = btn.dataset.userId;
@@ -124,16 +182,18 @@ document.addEventListener('DOMContentLoaded', async ()=>{
         const usedCategoria = modalCatEl && modalCatEl.value ? modalCatEl.value : categoria;
         const token = localStorage.getItem('token');
         if (!token) { window.location = 'login.html'; return; }
-        if (!descripcion){ alert('Describe el problema.'); return; }
+        if (!descripcion){ window.showError('Por favor, describe el problema', 'Descripción requerida'); return; }
         try{
           const payload = { categoria: usedCategoria, descripcion, precio, profesionalId };
           if (fechaHora) payload.fechaHora = fechaHora;
           if (direccion) payload.direccion = direccion;
           await window.apiRequest('/pedidos', { method:'POST', body: JSON.stringify(payload)});
-          alert('Solicitud enviada correctamente');
+          window.showSuccess('Solicitud enviada correctamente<br>Serás redirigido a tu panel...', '¡Solicitud Enviada!');
           solicitarModal.hide();
-          window.location = 'panel-cliente.html';
-        }catch(err){ alert(err.message||'Error al solicitar'); }
+          setTimeout(() => {
+            window.location = 'panel-cliente.html';
+          }, 1500);
+        }catch(err){ window.showError(err.message||'Error al enviar la solicitud', 'Error'); }
       });
 
     }catch(err){ 

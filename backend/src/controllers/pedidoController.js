@@ -126,7 +126,14 @@ router.post('/:id/calificar', async (req,res)=>{
     const existing = await ratingRepo.getByPedido(pedidoId);
     if (existing) return res.status(400).json({message:'Este pedido ya fue calificado'});
 
-    const out = await ratingRepo.createRating({ pedido_id: pedidoId, profesional_id: pedido.profesional_id, cliente_id: user.id, rating: ratingVal, comentario });
+    const out = await ratingRepo.createRating({ 
+      pedido_id: pedidoId, 
+      profesional_id: pedido.profesional_id, 
+      cliente_id: user.id, 
+      categoria: pedido.categoria, // Guardar la categoría del servicio
+      rating: ratingVal, 
+      comentario 
+    });
     res.json({ message: 'Calificación registrada', id: out.id });
   }catch(err){ console.error('POST /api/pedidos/:id/calificar error:', err); res.status(500).json({message:err.message}); }
 });

@@ -43,10 +43,11 @@ const listApprovedProfiles = async (filters = {}) => {
   const { categoria, zona, tarifaMin, tarifaMax, ratingMin } = filters;
   
   // Build dynamic query with LEFT JOIN to ratings to calculate avg rating
+  // Solo contar ratings de la misma categoría del perfil
   let sql = `
     SELECT p.*, u.nombre as usuario_nombre, u.id as usuario_id,
-           COALESCE(AVG(r.rating), 0) as rating_promedio,
-           COUNT(r.id) as total_ratings
+           COALESCE(AVG(CASE WHEN r.categoria IS NOT NULL AND lower(r.categoria) = lower(p.categoria) THEN r.rating END), 0) as rating_promedio,
+           COUNT(CASE WHEN r.categoria IS NOT NULL AND lower(r.categoria) = lower(p.categoria) THEN r.id END) as total_ratings
     FROM profiles p
     JOIN users u ON p.user_id = u.id
     LEFT JOIN ratings r ON r.profesional_id = u.id

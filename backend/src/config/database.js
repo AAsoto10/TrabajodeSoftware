@@ -60,6 +60,7 @@ async function initDB(){
       pedido_id INTEGER,
       profesional_id INTEGER,
       cliente_id INTEGER,
+      categoria TEXT,
       rating INTEGER,
       comentario TEXT,
       created_at TEXT DEFAULT CURRENT_TIMESTAMP
@@ -103,6 +104,20 @@ async function initDB(){
   // Ensure pedidos has fechaHora and direccion for new features
   try{ await db.run("ALTER TABLE pedidos ADD COLUMN fechaHora TEXT"); }catch(e){}
   try{ await db.run("ALTER TABLE pedidos ADD COLUMN direccion TEXT"); }catch(e){}
+  
+  // Ensure ratings has categoria column
+  try{ await db.run("ALTER TABLE ratings ADD COLUMN categoria TEXT"); }catch(e){}
+
+  // Migrar categoría a ratings existentes desde sus pedidos
+  try{
+    const ratingsWithoutCategoria = await db.all("SELECT r.id, p.categoria FROM ratings r JOIN pedidos p ON r.pedido_id = p.id WHERE r.categoria IS NULL");
+    for (const r of ratingsWithoutCategoria){
+      if (r.categoria) {
+        await db.run('UPDATE ratings SET categoria = ? WHERE id = ?', [r.categoria, r.id]);
+      }
+    }
+    console.log(`Actualizadas ${ratingsWithoutCategoria.length} calificaciones con categoría desde pedidos`);
+  }catch(e){ console.warn('Migration de categoría en ratings skipped or failed', e.message); }
 
   // Migrate existing single-user profiles into new `profiles` table (if any)
   try{
