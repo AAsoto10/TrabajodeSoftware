@@ -59,26 +59,31 @@ document.addEventListener('DOMContentLoaded', async ()=>{
         const stars = generarEstrellas(rating);
         
         col.innerHTML = `
-          <div class="card p-4 h-100" style="border-radius:.8rem; box-shadow:0 10px 30px rgba(16,24,40,0.06)">
-            <div class="d-flex gap-3 align-items-start">
-              <img src="${avatar}" width="64" height="64" style="border-radius:8px;object-fit:cover" onerror="this.onerror=null;this.src='https://via.placeholder.com/80'" />
+          <div class="card professional-card p-4 h-100">
+            <div class="d-flex gap-3 align-items-start mb-3">
+              <div class="professional-avatar">
+                <img src="${avatar}" width="80" height="80" style="border-radius:12px;object-fit:cover" onerror="this.onerror=null;this.src='https://via.placeholder.com/80'" />
+              </div>
               <div class="flex-fill">
-                <h5 class="mb-1">${p.usuario_nombre || p.nombre || 'Profesional'}</h5>
-                <div class="small text-muted">${p.categoria || '-'}</div>
+                <h5 class="mb-1 fw-bold">${p.usuario_nombre || p.nombre || 'Profesional'}</h5>
+                <div class="badge bg-primary mb-2">${p.categoria || '-'}</div>
                 <div class="mt-2 text-warning">
-                  ${stars} <small class="text-muted">(${totalRatings})</small>
+                  ${stars} <small class="text-muted fw-semibold">(${totalRatings})</small>
                 </div>
               </div>
             </div>
-            <div class="mt-3 small text-muted"><i class="bi bi-geo-alt-fill"></i> ${p.zona || 'Sin especificar'}</div>
-            <p class="mt-2 text-muted small">${bio}</p>
-            <hr />
+            <div class="professional-location mb-2">
+              <i class="bi bi-geo-alt-fill text-primary"></i> 
+              <span class="text-muted">${p.zona || 'Sin especificar'}</span>
+            </div>
+            <p class="professional-bio text-muted">${bio}</p>
+            <hr class="my-3" />
             <div class="d-flex justify-content-between align-items-center">
-              <div>
-                <div class="h5 mb-0">Bs. ${p.tarifa || 0}</div>
+              <div class="professional-price">
+                <div class="h4 mb-0 text-primary fw-bold">Bs. ${p.tarifa || 0}</div>
                 <div class="small text-muted">por hora</div>
               </div>
-              <div class="d-flex gap-2">
+              <div class="d-flex gap-2 flex-wrap">
                 ${totalRatings > 0 ? `<button class="btn btn-outline-warning btn-sm verCalificacionesBtn" 
                   data-user-id="${p.usuario_id}" 
                   data-nombre="${p.usuario_nombre}"
@@ -180,7 +185,7 @@ document.addEventListener('DOMContentLoaded', async ()=>{
         const direccion = document.getElementById('direccion').value.trim() || null;
         const modalCatEl = document.getElementById('modalCategoria');
         const usedCategoria = modalCatEl && modalCatEl.value ? modalCatEl.value : categoria;
-        const token = localStorage.getItem('token');
+        const token = sessionStorage.getItem('token');
         if (!token) { window.location = 'login.html'; return; }
         if (!descripcion){ window.showError('Por favor, describe el problema', 'Descripción requerida'); return; }
         try{

@@ -24,7 +24,7 @@ router.get('/database/table/:tableName', async (req, res) => {
     const { tableName } = req.params;
     
     // Validar nombre de tabla para prevenir SQL injection
-    const validTables = ['users', 'pedidos', 'profiles', 'ratings', 'commissions', 'reclamos'];
+    const validTables = ['users', 'pedidos', 'profiles', 'ratings', 'commissions', 'reclamos', 'categorias', 'mensajes'];
     if (!validTables.includes(tableName)) {
       return res.status(400).json({ success: false, message: 'Tabla no válida' });
     }
@@ -58,7 +58,7 @@ router.delete('/database/table/:tableName/row/:id', async (req, res) => {
   try {
     const { tableName, id } = req.params;
     
-    const validTables = ['users', 'pedidos', 'profiles', 'ratings', 'commissions', 'reclamos'];
+    const validTables = ['users', 'pedidos', 'profiles', 'ratings', 'commissions', 'reclamos', 'categorias', 'mensajes'];
     if (!validTables.includes(tableName)) {
       return res.status(400).json({ success: false, message: 'Tabla no válida' });
     }
@@ -79,7 +79,7 @@ router.post('/database/table/:tableName/truncate', async (req, res) => {
     const { tableName } = req.params;
     
     // No permitir vaciar la tabla de usuarios (por seguridad)
-    const validTables = ['pedidos', 'profiles', 'ratings', 'commissions', 'reclamos'];
+    const validTables = ['pedidos', 'profiles', 'ratings', 'commissions', 'reclamos', 'categorias', 'mensajes'];
     if (!validTables.includes(tableName)) {
       return res.status(400).json({ success: false, message: 'No se puede vaciar esta tabla' });
     }

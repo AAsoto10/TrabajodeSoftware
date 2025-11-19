@@ -57,7 +57,8 @@ Una vez iniciado el servidor, abre tu navegador en:
 ## 🔧 Notas técnicas
 
 - **API base:** `http://localhost:3000/api`
-- **Autenticación:** Tokens JWT almacenados en `localStorage` bajo la clave `token`
+- **Autenticación:** Tokens JWT almacenados en `sessionStorage` bajo la clave `token`
+- **Sesiones:** Cada pestaña del navegador tiene su propia sesión independiente
 - **Base de datos:** `backend/database.db` (SQLite)
 - **Backup automático:** Se crea un backup de la base de datos cada 24 horas
 

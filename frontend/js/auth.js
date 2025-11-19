@@ -9,9 +9,9 @@ document.addEventListener('DOMContentLoaded', ()=>{
       const body = { email: fd.get('email'), password: fd.get('password') };
       try{
         const res = await window.apiRequest('/auth/login',{method:'POST',body:JSON.stringify(body)});
-        localStorage.setItem('token', res.token);
+        sessionStorage.setItem('token', res.token);
         // store minimal user info for header display
-        if (res.user) localStorage.setItem('user', JSON.stringify(res.user));
+        if (res.user) sessionStorage.setItem('user', JSON.stringify(res.user));
         const role = res.user && res.user.role ? res.user.role : 'cliente';
         window.showSuccess('Has iniciado sesión correctamente', 'Bienvenido');
         setTimeout(() => {
@@ -33,8 +33,8 @@ document.addEventListener('DOMContentLoaded', ()=>{
         // Auto-login after successful registration
         try{
           const loginRes = await window.apiRequest('/auth/login',{method:'POST', body: JSON.stringify({ email: body.email, password: body.password })});
-          localStorage.setItem('token', loginRes.token);
-          if (loginRes.user) localStorage.setItem('user', JSON.stringify(loginRes.user));
+          sessionStorage.setItem('token', loginRes.token);
+          if (loginRes.user) sessionStorage.setItem('user', JSON.stringify(loginRes.user));
           const role = loginRes.user && loginRes.user.role ? loginRes.user.role : body.role;
           if (role === 'admin') window.location = 'panel-admin.html';
           else if (role === 'profesional') window.location = 'panel-profesional.html';

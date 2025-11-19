@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', async ()=>{
   const profileModalTitle = document.getElementById('profileModalTitle');
   const profileSaveBtn = document.getElementById('profileSaveBtn');
 
-  const token = localStorage.getItem('token');
+  const token = sessionStorage.getItem('token');
   if (!token) { window.location = 'login.html'; return; }
 
   // load current user basic info

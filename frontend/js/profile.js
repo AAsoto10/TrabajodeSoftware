@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', async ()=>{
-  const token = localStorage.getItem('token');
+  const token = sessionStorage.getItem('token');
   if (!token){ window.location = 'login.html'; return; }
 
   const nombreEl = document.getElementById('nombre');
@@ -31,10 +31,10 @@ document.addEventListener('DOMContentLoaded', async ()=>{
       const res = await fetch('/api/auth/me', { method: 'PUT', headers: { 'Content-Type':'application/json', 'Authorization': 'Bearer ' + token }, body: JSON.stringify(body) });
       if (!res.ok){ const j = await res.json().catch(()=>null); throw new Error((j && j.message) ? j.message : 'Error'); }
       const updated = await res.json();
-      // update localStorage user name
-      const stored = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')) : {};
+      // update sessionStorage user name
+      const stored = sessionStorage.getItem('user') ? JSON.parse(sessionStorage.getItem('user')) : {};
       stored.nombre = updated.nombre;
-      localStorage.setItem('user', JSON.stringify(stored));
+      sessionStorage.setItem('user', JSON.stringify(stored));
       window.showSuccess('Perfil actualizado correctamente', '¡Actualizado!');
       // update header display
       setTimeout(() => {

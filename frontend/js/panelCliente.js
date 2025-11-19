@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
   const pedidoCard = document.getElementById('pedidoCard');
 
   async function loadPedidos(){
-    const token = localStorage.getItem('token');
+    const token = sessionStorage.getItem('token');
     if (!token){ pedidosContainer.innerHTML = '<div class="card panel-empty"><div class="text-center"><a href="login.html" class="btn btn-primary">Iniciar sesión para ver tus pedidos</a></div></div>'; return; }
     try{
       const pedidos = await window.apiRequest('/pedidos/cliente');

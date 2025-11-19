@@ -159,7 +159,7 @@ class ChatManager {
     // Cargar info del pedido y usuario
     try {
       const pedido = await window.apiRequest(`/pedidos/${pedidoId}`);
-      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      const user = JSON.parse(sessionStorage.getItem('user') || '{}');
       
       // Determinar el nombre del otro usuario
       let otroUsuarioNombre = 'Usuario';
@@ -195,8 +195,17 @@ class ChatManager {
     try {
       const mensajes = await window.apiRequest(`/mensajes/pedido/${this.currentPedidoId}`);
       
-      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      const user = JSON.parse(sessionStorage.getItem('user') || '{}');
       const userId = user.id;
+
+      // Verificar si hay mensajes nuevos comparando con los existentes
+      const existingMessages = this.chatMessages.querySelectorAll('.message');
+      const existingCount = existingMessages.length;
+      
+      // Si ya hay mensajes y la cantidad no cambió, no hacer nada
+      if (existingCount > 0 && existingCount === mensajes.length && !autoScroll) {
+        return; // No hay mensajes nuevos
+      }
 
       let html = '';
       mensajes.forEach(msg => {
@@ -205,7 +214,7 @@ class ChatManager {
         const time = this.formatTime(msg.created_at);
 
         html += `
-          <div class="message ${alignClass}">
+          <div class="message ${alignClass}" data-msg-id="${msg.id}">
             <div class="message-bubble">
               ${msg.mensaje}
               <div class="message-time">${time}</div>
@@ -220,9 +229,12 @@ class ChatManager {
 
       this.chatMessages.innerHTML = html;
 
-      if (autoScroll) {
-        this.scrollToBottom();
-      }
+      // Forzar scroll al final después de renderizar
+      requestAnimationFrame(() => {
+        if (this.chatMessages) {
+          this.chatMessages.scrollTop = this.chatMessages.scrollHeight;
+        }
+      });
 
     } catch (err) {
       console.error('Error loading mensajes:', err);
@@ -241,7 +253,7 @@ class ChatManager {
     if (!mensaje || !this.currentPedidoId || !this.currentDestinatarioId) return;
 
     try {
-      await window.apiRequest('/mensajes', {
+      const newMsg = await window.apiRequest('/mensajes', {
         method: 'POST',
         body: JSON.stringify({
           pedido_id: this.currentPedidoId,
@@ -251,7 +263,27 @@ class ChatManager {
       });
 
       this.chatInput.value = '';
-      await this.loadMensajes();
+      
+      // Agregar el mensaje directamente al DOM sin recargar
+      const user = JSON.parse(sessionStorage.getItem('user') || '{}');
+      const time = this.formatTime(new Date().toISOString());
+      
+      const messageDiv = document.createElement('div');
+      messageDiv.className = 'message message-mine';
+      messageDiv.setAttribute('data-msg-id', newMsg.id || Date.now());
+      messageDiv.innerHTML = `
+        <div class="message-bubble">
+          ${mensaje}
+          <div class="message-time">${time}</div>
+        </div>
+      `;
+      
+      // Remover mensaje de placeholder si existe
+      const placeholder = this.chatMessages.querySelector('.text-center.text-muted');
+      if (placeholder) placeholder.remove();
+      
+      this.chatMessages.appendChild(messageDiv);
+      this.scrollToBottom();
 
     } catch (err) {
       console.error('Error sending message:', err);
@@ -290,7 +322,10 @@ class ChatManager {
 
   scrollToBottom() {
     if (this.chatMessages) {
-      this.chatMessages.scrollTop = this.chatMessages.scrollHeight;
+      // Usar requestAnimationFrame para sincronizar con el renderizado
+      requestAnimationFrame(() => {
+        this.chatMessages.scrollTop = this.chatMessages.scrollHeight;
+      });
     }
   }
 

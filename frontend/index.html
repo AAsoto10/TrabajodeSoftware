@@ -18,6 +18,7 @@
         <ul class="nav mx-auto">
           <li class="nav-item"><a class="nav-link" href="index.html">Inicio</a></li>
           <li class="nav-item"><a class="nav-link" href="profesionales.html">Servicios</a></li>
+          <li class="nav-item"><a class="nav-link" href="sobre-nosotros.html">Sobre Nosotros</a></li>
         </ul>
         <div class="ms-auto">
           <a href="login.html" class="btn btn-info rounded-pill px-4">Iniciar Sesión</a>
@@ -33,31 +34,56 @@
         <div class="hero-slide" style="background-image: url('images/plomero.jpg');"></div>
       </div>
       
-      <div class="text-center">
-        <h1 class="display-4 fw-bold">Profesionales confiables<br>cerca de ti</h1>
-        <p class="lead" style="color: whitesmoke; font-weight: 100; font-family: sans-serif;">Encuentra técnicos y profesionales de confianza para tu hogar:<br> electricidad, plomería, pintura y más. Revisa perfiles, compara precios, y solicita servicio en <br> pocos pasos.</p>
-        <a href="register.html" class="btn btn-warning btn-lg">Comenzar</a>
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-8 mx-auto text-center">
+            <div class="hero-content">
+              <h1 class="display-3 fw-bold mb-4">
+                Profesionales confiables<br>
+                <span class="text-warning">cerca de ti</span>
+              </h1>
+              <p class="hero-subtitle mb-4">
+                Encuentra técnicos y profesionales de confianza para tu hogar: electricidad, plomería, pintura y más. 
+                Revisa perfiles, compara precios y solicita servicio en pocos pasos.
+              </p>
+              <div class="hero-buttons d-flex gap-3 justify-content-center flex-wrap">
+                <a href="register.html" class="btn btn-warning btn-lg px-5">
+                  <i class="bi bi-rocket-takeoff"></i> Comenzar Ahora
+                </a>
+                <a href="profesionales.html" class="btn btn-outline-light btn-lg px-5">
+                  <i class="bi bi-people"></i> Ver Profesionales
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </header>
 
     <main class="container my-5">
       <section class="how-it-works mb-5">
         <h2 class="text-center mb-4">Cómo funciona</h2>
-        <div class="row text-center">
+        <div class="row text-center g-4">
           <div class="col-md-4">
-            <div class="mb-3 display-4">🧭</div>
-            <h5>1. Elige servicio</h5>
-            <p>Selecciona la categoría y describe tu necesidad.</p>
+            <div class="feature-icon mb-3">
+              <i class="bi bi-search text-primary"></i>
+            </div>
+            <h5 class="fw-bold">1. Elige servicio</h5>
+            <p class="text-muted">Selecciona la categoría y describe tu necesidad.</p>
           </div>
           <div class="col-md-4">
-            <div class="mb-3 display-4">🔎</div>
-            <h5>2. Encuentra profesional</h5>
-            <p>Revisa perfiles y calificaciones.</p>
+            <div class="feature-icon mb-3">
+              <i class="bi bi-person-check text-primary"></i>
+            </div>
+            <h5 class="fw-bold">2. Encuentra profesional</h5>
+            <p class="text-muted">Revisa perfiles y calificaciones.</p>
           </div>
           <div class="col-md-4">
-            <div class="mb-3 display-4">✅</div>
-            <h5>3. Servicio completado</h5>
-            <p>Paga seguro y califica al profesional.</p>
+            <div class="feature-icon mb-3">
+              <i class="bi bi-check-circle text-primary"></i>
+            </div>
+            <h5 class="fw-bold">3. Servicio completado</h5>
+            <p class="text-muted">Paga seguro y califica al profesional.</p>
           </div>
         </div>
       </section>
@@ -76,29 +102,52 @@
     </main>
 
     <!-- Footer -->
-    <footer class="site-footer bg-dark text-white py-5">
+    <footer class="site-footer py-5">
       <div class="container">
-        <div class="row">
-          <div class="col-md-4 mb-3">
-            <h5 class="fw-bold">HogarFix</h5>
-            <p class="small text-muted">Conecta con profesionales confiables para tu hogar. Calidad y seguridad en cada servicio.</p>
+        <div class="row g-4">
+          <div class="col-lg-4 col-md-6">
+            <div class="d-flex align-items-center mb-3">
+              <img src="images/logo.png" alt="HogarFix" style="height:45px; width:auto; margin-right:10px;">
+              <h5 class="fw-bold mb-0">HogarFix</h5>
+            </div>
+            <p class="footer-text mb-3">Conecta con profesionales confiables para tu hogar. Calidad y seguridad en cada servicio.</p>
+            <div class="social-links">
+              <a href="#" class="social-icon" title="Facebook"><i class="bi bi-facebook"></i></a>
+              <a href="#" class="social-icon" title="Instagram"><i class="bi bi-instagram"></i></a>
+              <a href="#" class="social-icon" title="Twitter"><i class="bi bi-twitter"></i></a>
+              <a href="#" class="social-icon" title="WhatsApp"><i class="bi bi-whatsapp"></i></a>
+            </div>
           </div>
-          <div class="col-md-4 mb-3">
-            <h6 class="fw-semibold">Enlaces</h6>
-            <ul class="list-unstyled small">
-              <li><a href="profesionales.html" class="text-white text-decoration-none">Ver servicios</a></li>
-              <li><a href="register.html" class="text-white text-decoration-none">Regístrate</a></li>
-              <li><a href="login.html" class="text-white text-decoration-none">Iniciar sesión</a></li>
+          <div class="col-lg-2 col-md-6">
+            <h6 class="footer-title">Servicios</h6>
+            <ul class="list-unstyled footer-links">
+              <li><a href="profesionales.html"><i class="bi bi-chevron-right"></i> Ver servicios</a></li>
+              <li><a href="profesionales.html"><i class="bi bi-chevron-right"></i> Profesionales</a></li>
+              <li><a href="#"><i class="bi bi-chevron-right"></i> Categorías</a></li>
             </ul>
           </div>
-          <div class="col-md-4 mb-3">
-            <h6 class="fw-semibold">Contacto</h6>
-            <p class="small mb-1">soporte@hogarfix.local</p>
-            <p class="small">+591 78451268</p>
+          <div class="col-lg-3 col-md-6">
+            <h6 class="footer-title">Acceso Rápido</h6>
+            <ul class="list-unstyled footer-links">
+              <li><a href="register.html"><i class="bi bi-chevron-right"></i> Regístrate</a></li>
+              <li><a href="login.html"><i class="bi bi-chevron-right"></i> Iniciar sesión</a></li>
+              <li><a href="sobre-nosotros.html"><i class="bi bi-chevron-right"></i> Sobre Nosotros</a></li>
+            </ul>
+          </div>
+          <div class="col-lg-3 col-md-6">
+            <h6 class="footer-title">Contacto</h6>
+            <ul class="list-unstyled footer-contact">
+              <li><i class="bi bi-envelope"></i> soporte@hogarfix.local</li>
+              <li><i class="bi bi-telephone"></i> +591 78451268</li>
+              <li><i class="bi bi-geo-alt"></i> La Paz, Bolivia</li>
+            </ul>
           </div>
         </div>
-        <div class="row mt-3">
-          <div class="col-12 text-center small text-muted" style="color: aliceblue;">&copy; 2025 HogarFix. Todos los derechos reservados.</div>
+        <hr class="footer-divider">
+        <div class="row">
+          <div class="col-12 text-center">
+            <p class="footer-copyright mb-0">&copy; 2025 HogarFix. Todos los derechos reservados.</p>
+          </div>
         </div>
       </div>
     </footer>

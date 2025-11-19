@@ -29,7 +29,7 @@
       </div>
     `;
     const logoutLink = document.getElementById('logoutLink');
-    if (logoutLink) logoutLink.addEventListener('click',(e)=>{ e.preventDefault(); localStorage.removeItem('token'); localStorage.removeItem('user'); window.location='index.html'; });
+    if (logoutLink) logoutLink.addEventListener('click',(e)=>{ e.preventDefault(); sessionStorage.removeItem('token'); sessionStorage.removeItem('user'); window.location='index.html'; });
   }
 
   function buildAnonymous(){
@@ -39,8 +39,8 @@
   }
 
   document.addEventListener('DOMContentLoaded', async ()=>{
-    const token = localStorage.getItem('token');
-    const storedUser = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')) : null;
+    const token = sessionStorage.getItem('token');
+    const storedUser = sessionStorage.getItem('user') ? JSON.parse(sessionStorage.getItem('user')) : null;
     if (token){
       // Try authoritative backend call first
       try{
@@ -60,8 +60,8 @@
 
     // listen for profile updates from other scripts
     window.addEventListener('profileUpdated', ()=>{
-      const stored = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')) : null;
-      const token2 = localStorage.getItem('token');
+      const stored = sessionStorage.getItem('user') ? JSON.parse(sessionStorage.getItem('user')) : null;
+      const token2 = sessionStorage.getItem('token');
       const payload = token2 ? parseJwt(token2) : null;
       buildLogged(payload, stored);
     });
