@@ -99,6 +99,51 @@
       </div>
     </div>
 
+    <!-- Modal para ver información completa del profesional -->
+    <div class="modal fade" id="infoModal" tabindex="-1">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header bg-light">
+            <div class="d-flex align-items-center gap-3">
+              <img id="infoAvatar" src="" width="60" height="60" style="border-radius:12px;object-fit:cover" />
+              <div>
+                <h5 class="modal-title mb-1" id="infoNombre"></h5>
+                <span id="infoCategoriaBadge" class="badge bg-primary"></span>
+              </div>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <div class="d-flex align-items-center gap-2 mb-2">
+                <i class="bi bi-star-fill text-warning fs-5"></i>
+                <span id="infoRating" class="fw-bold"></span>
+              </div>
+              <div class="d-flex align-items-center gap-2 mb-3">
+                <i class="bi bi-geo-alt-fill text-primary"></i>
+                <span id="infoZona" class="text-muted"></span>
+              </div>
+            </div>
+            <hr>
+            <div class="mb-3">
+              <h6 class="fw-bold mb-2"><i class="bi bi-person-lines-fill"></i> Biografía</h6>
+              <p id="infoBiografia" class="text-muted" style="white-space: pre-line;"></p>
+            </div>
+            <div id="infoCertificadosSection" class="mb-3" style="display: none;">
+              <hr>
+              <h6 class="fw-bold mb-2"><i class="bi bi-award-fill text-success"></i> Certificados</h6>
+              <div id="infoCertificados" class="d-flex flex-wrap gap-2"></div>
+            </div>
+            <hr>
+            <div class="mb-3">
+              <h6 class="text-muted mb-1">Tarifa por hora</h6>
+              <div class="h3 text-primary fw-bold mb-0">Bs. <span id="infoTarifa"></span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Modal para ver calificaciones -->
     <div class="modal fade" id="calificacionesModal" tabindex="-1">
       <div class="modal-dialog modal-lg">

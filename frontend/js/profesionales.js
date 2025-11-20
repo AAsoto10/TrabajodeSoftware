@@ -59,7 +59,7 @@ document.addEventListener('DOMContentLoaded', async ()=>{
         const stars = generarEstrellas(rating);
         
         col.innerHTML = `
-          <div class="card professional-card p-4 h-100">
+          <div class="card professional-card p-4 h-100" style="cursor: pointer;" data-profile='${JSON.stringify(p).replace(/'/g, "&#39;")}'>
             <div class="d-flex gap-3 align-items-start mb-3">
               <div class="professional-avatar">
                 <img src="${avatar}" width="80" height="80" style="border-radius:12px;object-fit:cover" onerror="this.onerror=null;this.src='https://via.placeholder.com/80'" />
@@ -87,7 +87,8 @@ document.addEventListener('DOMContentLoaded', async ()=>{
                 ${totalRatings > 0 ? `<button class="btn btn-outline-warning btn-sm verCalificacionesBtn" 
                   data-user-id="${p.usuario_id}" 
                   data-nombre="${p.usuario_nombre}"
-                  data-categoria="${p.categoria}">
+                  data-categoria="${p.categoria}"
+                  onclick="event.stopPropagation()">
                   <i class="bi bi-star-fill"></i> Ver reseñas
                 </button>` : ''}
                 <button class="btn btn-info solicitarBtn" 
@@ -95,7 +96,8 @@ document.addEventListener('DOMContentLoaded', async ()=>{
                   data-user-id="${p.usuario_id}" 
                   data-nombre="${p.usuario_nombre}"
                   data-categoria="${p.categoria}"
-                  data-tarifa="${p.tarifa}">
+                  data-tarifa="${p.tarifa}"
+                  onclick="event.stopPropagation()">
                   Solicitar
                 </button>
               </div>
@@ -106,6 +108,57 @@ document.addEventListener('DOMContentLoaded', async ()=>{
 
       const solicitarModal = new bootstrap.Modal(document.getElementById('solicitarModal'));
       const calificacionesModal = new bootstrap.Modal(document.getElementById('calificacionesModal'));
+      const infoModal = new bootstrap.Modal(document.getElementById('infoModal'));
+      
+      // Event listener para hacer clic en las tarjetas
+      document.querySelectorAll('.professional-card').forEach(card => {
+        card.addEventListener('click', () => {
+          const profileData = JSON.parse(card.dataset.profile.replace(/&#39;/g, "'"));
+          
+          // Rellenar modal con información completa
+          const avatar = profileData.avatar ? (''+profileData.avatar).replace(/\s+/g,'') : 'https://via.placeholder.com/80';
+          document.getElementById('infoAvatar').src = avatar;
+          document.getElementById('infoNombre').textContent = profileData.usuario_nombre || profileData.nombre || 'Profesional';
+          document.getElementById('infoCategoriaBadge').textContent = profileData.categoria || '-';
+          
+          const rating = parseFloat(profileData.rating_promedio) || 0;
+          const totalRatings = profileData.total_ratings || 0;
+          const stars = generarEstrellas(rating);
+          document.getElementById('infoRating').innerHTML = `${stars} <span class="text-muted">(${totalRatings} reseñas)</span>`;
+          
+          document.getElementById('infoZona').textContent = profileData.zona || 'Sin especificar';
+          document.getElementById('infoBiografia').textContent = profileData.biografia || 'Sin descripción disponible.';
+          document.getElementById('infoTarifa').textContent = profileData.tarifa || '0';
+          
+          // Mostrar certificados si existen
+          const certificadosSection = document.getElementById('infoCertificadosSection');
+          const certificadosContainer = document.getElementById('infoCertificados');
+          
+          if (profileData.certificados && profileData.certificados.trim()) {
+            const certificadosArray = profileData.certificados.split(',').map(c => c.trim()).filter(c => c);
+            
+            if (certificadosArray.length > 0) {
+              certificadosSection.style.display = 'block';
+              certificadosContainer.innerHTML = '';
+              
+              certificadosArray.forEach(cert => {
+                const badge = document.createElement('span');
+                badge.className = 'badge bg-success-subtle text-success border border-success';
+                badge.style.fontSize = '0.9rem';
+                badge.style.padding = '0.5rem 0.75rem';
+                badge.innerHTML = `<i class="bi bi-patch-check-fill me-1"></i> ${cert}`;
+                certificadosContainer.appendChild(badge);
+              });
+            } else {
+              certificadosSection.style.display = 'none';
+            }
+          } else {
+            certificadosSection.style.display = 'none';
+          }
+          
+          infoModal.show();
+        });
+      });
       
       // Event listener para botones de ver calificaciones
       document.querySelectorAll('.verCalificacionesBtn').forEach(btn=>{

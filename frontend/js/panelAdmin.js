@@ -215,9 +215,16 @@ document.addEventListener('DOMContentLoaded', ()=>{
                     <small class="text-muted d-block mb-2" style="font-weight: 600; text-transform: uppercase; font-size: 0.7rem; letter-spacing: 0.5px;">
                       <i class="bi bi-chat-left-text me-1"></i>Descripción del reclamo
                     </small>
-                    <p class="mb-0 text-dark" style="font-size: 0.9rem; line-height: 1.6;">
-                      ${r.descripcion.length > 120 ? r.descripcion.substring(0, 120) + '...' : r.descripcion}
-                    </p>
+                    <div class="descripcion-container">
+                      <p class="mb-0 text-dark descripcion-text" style="font-size: 0.9rem; line-height: 1.6;" data-full="${r.descripcion.replace(/"/g, '&quot;')}">
+                        ${r.descripcion.length > 120 ? r.descripcion.substring(0, 120) + '...' : r.descripcion}
+                      </p>
+                      ${r.descripcion.length > 120 ? `
+                        <button class="btn btn-link btn-sm p-0 mt-1 ver-mas-btn" style="font-size: 0.85rem; text-decoration: none;">
+                          <i class="bi bi-chevron-down"></i> Ver más
+                        </button>
+                      ` : ''}
+                    </div>
                   </div>
                 </div>
                 
@@ -246,10 +253,43 @@ document.addEventListener('DOMContentLoaded', ()=>{
             transform: translateY(-5px);
             box-shadow: 0 12px 24px rgba(0,0,0,0.15) !important;
           }
+          .descripcion-text {
+            transition: max-height 0.3s ease;
+            overflow: hidden;
+          }
+          .ver-mas-btn {
+            transition: all 0.2s ease;
+          }
+          .ver-mas-btn:hover {
+            transform: translateX(3px);
+          }
         </style>
       `;
       
       admin.innerHTML = html;
+      
+      // Agregar event listeners para los botones "Ver más"
+      document.querySelectorAll('.ver-mas-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const container = btn.closest('.descripcion-container');
+          const textElement = container.querySelector('.descripcion-text');
+          const fullText = textElement.dataset.full;
+          const isExpanded = btn.classList.contains('expanded');
+          
+          if (isExpanded) {
+            // Colapsar
+            textElement.textContent = fullText.substring(0, 120) + '...';
+            btn.innerHTML = '<i class="bi bi-chevron-down"></i> Ver más';
+            btn.classList.remove('expanded');
+          } else {
+            // Expandir
+            textElement.textContent = fullText;
+            btn.innerHTML = '<i class="bi bi-chevron-up"></i> Ver menos';
+            btn.classList.add('expanded');
+          }
+        });
+      });
     }catch(err){ 
       admin.innerHTML = '<div class="alert alert-danger">Error cargando reclamos</div>'; 
     }
