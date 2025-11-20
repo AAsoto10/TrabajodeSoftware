@@ -16,20 +16,32 @@ document.addEventListener('DOMContentLoaded', ()=>{
   async function loadPendientes(){
     try{
       const pendientes = await window.apiRequest('/admin/profesionales/pendientes');
-      if (!pendientes || pendientes.length===0){ admin.innerHTML = '<div class="card p-4"><div class="text-center text-muted">No hay profesionales pendientes</div></div>'; return; }
-      let html = '';
+      if (!pendientes || pendientes.length===0){ admin.innerHTML = '<div class="card p-4"><div class="text-center text-muted">No hay profesionales pendientes de validación</div></div>'; return; }
+      let html = '<h4 class="mb-3">Solicitudes de Profesionales Pendientes</h4>';
       pendientes.forEach(p=>{
+        const fotoCI = p.foto_ci ? `<div class="mt-2"><img src="${p.foto_ci}" alt="CI" class="img-thumbnail" style="max-width:200px; cursor:pointer;" onclick="window.open('${p.foto_ci}', '_blank')"></div>` : '<div class="small text-muted mt-2">Sin foto de CI</div>';
+        const motivacion = p.motivacion ? `<div class="mt-2"><strong>Motivación:</strong><br><em class="text-muted">"${p.motivacion}"</em></div>` : '';
+        
         html += `
-          <div class="card p-3 mb-3">
-            <div class="d-flex justify-content-between align-items-center">
-              <div>
-                <h5 class="mb-1">${p.nombre}</h5>
-                <div class="small text-muted">${p.email}</div>
-                <div class="small text-muted">${p.categoria || ''}</div>
+          <div class="card p-3 mb-3 border-warning">
+            <div class="d-flex justify-content-between align-items-start">
+              <div class="flex-grow-1">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                  <h5 class="mb-0">${p.nombre}</h5>
+                  <span class="badge bg-warning text-dark">Pendiente de Validación</span>
+                </div>
+                <div class="small text-muted mb-1"><i class="bi bi-envelope"></i> ${p.email}</div>
+                <div class="small mb-1"><strong>Categoría:</strong> ${p.categoria || 'No especificada'}</div>
+                ${fotoCI}
+                ${motivacion}
               </div>
-              <div class="d-flex gap-2">
-                <button class="btn btn-success btn-sm approveBtn" data-id="${p.id}">Validar</button>
-                <button class="btn btn-danger btn-sm rejectBtn" data-id="${p.id}">Rechazar</button>
+              <div class="d-flex gap-2 align-items-start">
+                <button class="btn btn-success btn-sm approveBtn" data-id="${p.id}" title="Aprobar profesional">
+                  <i class="bi bi-check-circle"></i> Aprobar
+                </button>
+                <button class="btn btn-danger btn-sm rejectBtn" data-id="${p.id}" title="Rechazar profesional">
+                  <i class="bi bi-x-circle"></i> Rechazar
+                </button>
               </div>
             </div>
           </div>`;
@@ -37,13 +49,23 @@ document.addEventListener('DOMContentLoaded', ()=>{
       admin.innerHTML = html;
       document.querySelectorAll('.approveBtn').forEach(b=>b.addEventListener('click', async ()=>{
         const id = b.dataset.id;
-        try{ await window.apiRequest(`/admin/profesional/${id}/aprobar`, { method:'POST' }); loadPendientes(); loadResumen(); }
+        try{ 
+          await window.apiRequest(`/admin/profesional/${id}/aprobar`, { method:'POST' }); 
+          window.showSuccess('Profesional aprobado correctamente. Ahora puede iniciar sesión y trabajar.', '¡Aprobado!');
+          loadPendientes(); 
+          loadResumen(); 
+        }
         catch(err){ window.showError(err.message||'Error al procesar la solicitud', 'Error'); }
       }));
       document.querySelectorAll('.rejectBtn').forEach(b=>b.addEventListener('click', async ()=>{
         const id = b.dataset.id;
-        window.showConfirm('¿Deseas rechazar este profesional?', async () => {
-          try{ await window.apiRequest(`/admin/profesional/${id}/rechazar`, { method:'POST' }); loadPendientes(); loadResumen(); }
+        window.showConfirm('¿Estás seguro de rechazar esta solicitud? El usuario no podrá iniciar sesión.', async () => {
+          try{ 
+            await window.apiRequest(`/admin/profesional/${id}/rechazar`, { method:'POST' }); 
+            window.showSuccess('Solicitud rechazada', 'Rechazado');
+            loadPendientes(); 
+            loadResumen(); 
+          }
           catch(err){ window.showError(err.message||'Error al procesar la solicitud', 'Error'); }
         });
       }));

@@ -54,6 +54,24 @@
               <option value="profesional">🔧 Profesional - Ofrecer servicios</option>
             </select>
           </div>
+          
+          <!-- Campos adicionales para profesionales -->
+          <div id="profesionalFields" style="display:none;">
+            <div class="mb-4">
+              <label class="form-label"><i class="bi bi-card-image"></i> Foto de Carnet de Identidad</label>
+              <input type="file" name="foto_ci" id="foto_ci" class="form-control form-control-lg" accept="image/*">
+              <small class="text-muted">Sube una foto clara de tu carnet de identidad (ambos lados si es posible)</small>
+            </div>
+            <div class="mb-4">
+              <label class="form-label"><i class="bi bi-pencil-square"></i> ¿Por qué quieres trabajar con nosotros?</label>
+              <textarea name="motivacion" id="motivacion" class="form-control" rows="4" placeholder="Cuéntanos tu experiencia y por qué quieres ofrecer tus servicios en HogarFix"></textarea>
+              <small class="text-muted">Esta información será revisada por nuestro equipo</small>
+            </div>
+            <div class="alert alert-info">
+              <i class="bi bi-info-circle-fill"></i> Tu cuenta será revisada por un administrador antes de ser aprobada. Te notificaremos por email.
+            </div>
+          </div>
+          
           <div class="d-grid mt-4">
             <button class="btn btn-primary btn-lg" type="submit">Crear mi cuenta</button>
           </div>
@@ -69,6 +87,24 @@
     <script src="js/header.js"></script>
     <script src="js/modalHelper.js"></script>
     <script src="js/apiService.js"></script>
+    <script>
+      // Mostrar/ocultar campos de profesional
+      document.getElementById('roleSelect').addEventListener('change', function() {
+        const profesionalFields = document.getElementById('profesionalFields');
+        const fotoCiInput = document.getElementById('foto_ci');
+        const motivacionInput = document.getElementById('motivacion');
+        
+        if (this.value === 'profesional') {
+          profesionalFields.style.display = 'block';
+          fotoCiInput.required = true;
+          motivacionInput.required = true;
+        } else {
+          profesionalFields.style.display = 'none';
+          fotoCiInput.required = false;
+          motivacionInput.required = false;
+        }
+      });
+    </script>
     <script src="js/auth.js"></script>
   </body>
 </html>

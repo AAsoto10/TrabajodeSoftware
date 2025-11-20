@@ -4,12 +4,25 @@ const userRepo = require('../repositories/userRepository');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'secret_hogarfix_2025';
 
-const register = async ({nombre,email,password,role,categoria})=>{
+const register = async ({nombre,email,password,role,categoria,foto_ci,motivacion})=>{
   const existing = await userRepo.findByEmail(email);
   if (existing) throw new Error('Email ya registrado');
   const hash = bcrypt.hashSync(password,10);
+  
+  // Los profesionales requieren aprobación del admin, clientes no
   const estado = role === 'profesional' ? 'pendiente' : 'aprobado';
-  const user = await userRepo.create({nombre,email,password:hash,role,estado_validacion:estado,categoria});
+  
+  const user = await userRepo.create({
+    nombre,
+    email,
+    password:hash,
+    role,
+    estado_validacion:estado,
+    categoria,
+    foto_ci: foto_ci || null,
+    motivacion: motivacion || null
+  });
+  
   return { message: 'Usuario creado', user };
 }
 

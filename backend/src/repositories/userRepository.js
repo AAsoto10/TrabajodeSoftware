@@ -1,8 +1,11 @@
 const { getDB } = require('../config/database');
 
-const create = async ({nombre,email,password,role,estado_validacion,categoria})=>{
+const create = async ({nombre,email,password,role,estado_validacion,categoria,foto_ci,motivacion})=>{
   const db = getDB();
-  const res = await db.run('INSERT INTO users (nombre,email,password,role,estado_validacion,categoria) VALUES (?,?,?,?,?,?)', [nombre,email,password,role,estado_validacion||'pendiente', categoria || null]);
+  const res = await db.run(
+    'INSERT INTO users (nombre,email,password,role,estado_validacion,categoria,foto_ci,motivacion) VALUES (?,?,?,?,?,?,?,?)', 
+    [nombre,email,password,role,estado_validacion||'pendiente', categoria || null, foto_ci || null, motivacion || null]
+  );
   return { id: res.lastID, nombre, email, role, estado_validacion };
 }
 

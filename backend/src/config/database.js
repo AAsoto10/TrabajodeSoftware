@@ -19,7 +19,10 @@ async function initDB(){
       role TEXT,
       estado_validacion TEXT DEFAULT 'aprobado',
       categoria TEXT,
-      saldo REAL DEFAULT 0
+      saldo REAL DEFAULT 0,
+      foto_ci TEXT,
+      motivacion TEXT,
+      activo INTEGER DEFAULT 1
     );
 
     CREATE TABLE IF NOT EXISTS pedidos (
