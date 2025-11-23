@@ -12,6 +12,19 @@ document.addEventListener('DOMContentLoaded', async ()=>{
 
   // load current user basic info
   let user = null;
+  
+  // Función para recargar los datos del usuario
+  async function reloadUser() {
+    try {
+      user = await window.apiRequest('/auth/me');
+      console.log('Usuario recargado:', user); // Debug
+      return user;
+    } catch(err) {
+      console.warn('No se pudo recargar usuario', err);
+      return null;
+    }
+  }
+  
   try{
     user = await window.apiRequest('/auth/me');
   }catch(err){
@@ -234,12 +247,54 @@ document.addEventListener('DOMContentLoaded', async ()=>{
   // 2) cargar pedidos asignados al profesional (sección separada)
   try{
     const pedidos = await window.apiRequest('/pedidos/profesional');
+    console.log('Pedidos recibidos:', pedidos); // Debug
+    
     // render stats and tabs
     async function renderStatsAndTabs(pedidosList){
+      // Recargar datos del usuario para obtener el saldo actualizado
+      await reloadUser();
+      
       const pending = pedidosList.filter(p=>p.estado === 'pendiente').length;
       const assigned = pedidosList.filter(p=>p.estado === 'asignado').length;
       const completed = pedidosList.filter(p=>p.estado === 'completado').length;
-      const saldo = user && typeof user.saldo !== 'undefined' ? user.saldo : 0;
+      
+      // Calcular ganancias por categoría de pedidos completados
+      const gananciasPorCategoria = {};
+      const pedidosCompletados = pedidosList.filter(p => p.estado === 'completado' && p.precio);
+      
+      console.log('Pedidos completados:', pedidosCompletados); // Debug
+      
+      // Calcular saldo total basado SOLO en los pedidos completados de este profesional
+      let saldoCalculado = 0;
+      
+      pedidosCompletados.forEach(p => {
+        const categoria = p.categoria || 'Sin categoría';
+        const precioTotal = parseFloat(p.precio) || 0;
+        // El backend usa 10% de comisión, así que el profesional recibe (precio - 10%)
+        const comision = precioTotal * 0.10;
+        const ganancia = precioTotal - comision;
+        
+        // Sumar al saldo total calculado
+        saldoCalculado += ganancia;
+        
+        if (!gananciasPorCategoria[categoria]) {
+          gananciasPorCategoria[categoria] = {
+            total: 0,
+            trabajos: 0,
+            precioTotal: 0
+          };
+        }
+        gananciasPorCategoria[categoria].total += ganancia;
+        gananciasPorCategoria[categoria].trabajos += 1;
+        gananciasPorCategoria[categoria].precioTotal += precioTotal;
+      });
+      
+      // Usar el saldo calculado en lugar del saldo del backend
+      const saldo = saldoCalculado;
+      
+      console.log('Ganancias por categoría:', gananciasPorCategoria); // Debug
+      console.log('Saldo calculado:', saldo); // Debug
+      
       // fetch ratings for this professional
       let ratings = [];
       try{ ratings = await window.apiRequest(`/profesionales/${user.id}/calificaciones`); }catch(e){ console.warn('No se pudieron cargar calificaciones', e); }
@@ -248,44 +303,174 @@ document.addEventListener('DOMContentLoaded', async ()=>{
       const statsHtml = `
         <div class="row g-3 mb-3">
           <div class="col-md-4">
-            <div class="card p-3 text-center">
-              <div class="small text-muted">Calificación Promedio</div>
-              <div class="h3 text-primary">4.0</div>
-              <div class="small text-muted">0 calificaciones</div>
+            <div class="stat-card-pro">
+              <div class="stat-icon-pro">
+                <i class="bi bi-star-fill"></i>
+              </div>
+              <div class="stat-label-pro">Calificación Promedio</div>
+              <div class="stat-value-pro">${ratingsAvg.toFixed(1)}</div>
+              <div class="small text-muted mt-2">${ratingsCount} calificaciones</div>
             </div>
           </div>
           <div class="col-md-4">
-            <div class="card p-3 text-center">
-              <div class="small text-muted">Solicitudes Pendientes</div>
-              <div class="h3 text-warning">${pending}</div>
+            <div class="stat-card-pro">
+              <div class="stat-icon-pro">
+                <i class="bi bi-hourglass-split"></i>
+              </div>
+              <div class="stat-label-pro">Solicitudes Pendientes</div>
+              <div class="stat-value-pro">${pending}</div>
             </div>
           </div>
           <div class="col-md-4">
-            <div class="card p-3 text-center">
-              <div class="small text-muted">Trabajos Activos</div>
-              <div class="h3 text-info">${assigned}</div>
+            <div class="stat-card-pro">
+              <div class="stat-icon-pro">
+                <i class="bi bi-clipboard-check"></i>
+              </div>
+              <div class="stat-label-pro">Trabajos Activos</div>
+              <div class="stat-value-pro">${assigned}</div>
             </div>
           </div>
           <div class="col-md-4">
-            <div class="card p-3 text-center">
-              <div class="small text-muted">Saldo disponible</div>
-              <div class="h3 text-success">Bs. ${saldo.toFixed ? saldo.toFixed(2) : saldo}</div>
+            <div class="stat-card-pro">
+              <div class="stat-icon-pro">
+                <i class="bi bi-wallet2"></i>
+              </div>
+              <div class="stat-label-pro">Saldo disponible</div>
+              <div class="stat-value-pro">Bs. ${saldo.toFixed ? saldo.toFixed(2) : saldo}</div>
             </div>
           </div>
         </div>
         <ul class="nav nav-tabs mb-3" id="profTab" role="tablist">
           <li class="nav-item" role="presentation"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-pendientes" type="button">Pendientes</button></li>
           <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-activos" type="button">Activos</button></li>
+          <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-saldo" type="button">Mi Saldo</button></li>
           <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-calificaciones" type="button">Calificaciones</button></li>
         </ul>
         <div class="tab-content">
           <div class="tab-pane fade show active" id="tab-pendientes"></div>
           <div class="tab-pane fade" id="tab-activos"></div>
+          <div class="tab-pane fade" id="tab-saldo"></div>
           <div class="tab-pane fade" id="tab-calificaciones">
             ${ratingsCount === 0 ? 'No hay calificaciones aún' : '<div id="ratingsList"></div>'}
           </div>
         </div>`;
       document.getElementById('statsContainer').innerHTML = statsHtml;
+      
+      // Renderizar desglose de saldo por categoría
+      const tabSaldo = document.getElementById('tab-saldo');
+      if (Object.keys(gananciasPorCategoria).length === 0) {
+        tabSaldo.innerHTML = `
+          <div class="card p-4 text-center">
+            <i class="bi bi-wallet" style="font-size: 3rem; color: #00d4ff;"></i>
+            <h5 class="mt-3 text-muted">No hay ganancias registradas aún</h5>
+            <p class="text-muted">Completa trabajos para ver tus ganancias por categoría</p>
+          </div>`;
+      } else {
+        let saldoHtml = `
+          <div class="card p-4">
+            <h5 class="mb-4">
+              <i class="bi bi-cash-stack text-success"></i> 
+              Ganancias por Tipo de Servicio
+            </h5>
+            <div class="row g-3">`;
+        
+        for (const [categoria, datos] of Object.entries(gananciasPorCategoria)) {
+          const iconos = {
+            'Electricidad': 'bi-lightning-charge-fill',
+            'Plomería': 'bi-droplet-fill',
+            'Carpintería': 'bi-hammer',
+            'Pintura': 'bi-brush-fill',
+            'Jardinería': 'bi-tree-fill',
+            'Limpieza': 'bi-wind',
+            'Albañilería': 'bi-bricks'
+          };
+          const icono = iconos[categoria] || 'bi-tools';
+          const comisionTotal = datos.precioTotal - datos.total;
+          
+          saldoHtml += `
+            <div class="col-md-6 col-lg-4">
+              <div class="card h-100" style="border-left: 4px solid #00d4ff; box-shadow: 0 2px 8px rgba(0,212,255,0.1); transition: all 0.3s ease;">
+                <div class="card-body">
+                  <div class="d-flex align-items-center gap-3 mb-3">
+                    <div style="width: 50px; height: 50px; border-radius: 12px; background: linear-gradient(135deg, #e0f7ff 0%, #f0f9ff 100%); display: flex; align-items: center; justify-content: center;">
+                      <i class="bi ${icono}" style="font-size: 1.5rem; color: #00d4ff;"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                      <div class="small text-muted">Categoría</div>
+                      <strong style="font-size: 1.1rem;">${categoria}</strong>
+                    </div>
+                  </div>
+                  <hr>
+                  <div class="row g-2">
+                    <div class="col-6">
+                      <div class="small text-muted mb-1">Precio Total</div>
+                      <div class="fw-bold text-primary">Bs. ${datos.precioTotal.toFixed(2)}</div>
+                    </div>
+                    <div class="col-6">
+                      <div class="small text-muted mb-1">Comisión (10%)</div>
+                      <div class="fw-bold text-danger">- Bs. ${comisionTotal.toFixed(2)}</div>
+                    </div>
+                    <div class="col-12">
+                      <hr class="my-2">
+                    </div>
+                    <div class="col-6">
+                      <div class="small text-muted mb-1">Tu Ganancia</div>
+                      <h4 class="mb-0 text-success fw-bold">Bs. ${datos.total.toFixed(2)}</h4>
+                    </div>
+                    <div class="col-6">
+                      <div class="small text-muted mb-1">Trabajos</div>
+                      <h5 class="mb-0 text-info fw-bold">${datos.trabajos}</h5>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>`;
+        }
+        
+        // Calcular el total de las categorías mostradas
+        const totalCalculado = Object.values(gananciasPorCategoria).reduce((sum, datos) => sum + datos.total, 0);
+        
+        saldoHtml += `
+            </div>
+            <hr class="my-4">
+            <div class="row">
+              <div class="col-12">
+                <div class="card" style="background: linear-gradient(135deg, #00d4ff 0%, #00a8cc 100%); border: none;">
+                  <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center text-white">
+                      <div>
+                        <div class="mb-2 opacity-75" style="font-size: 0.9rem; font-weight: 500;">💰 SALDO TOTAL DE TUS TRABAJOS</div>
+                        <h1 class="mb-1 fw-bold" style="font-size: 3rem;">Bs. ${saldo.toFixed(2)}</h1>
+                        <small class="opacity-90">Total ganado de ${pedidosCompletados.length} trabajo${pedidosCompletados.length !== 1 ? 's' : ''} completado${pedidosCompletados.length !== 1 ? 's' : ''}</small>
+                      </div>
+                      <div style="width: 80px; height: 80px; border-radius: 50%; background: rgba(255,255,255,0.2); backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center; border: 3px solid rgba(255,255,255,0.3);">
+                        <i class="bi bi-wallet2" style="font-size: 2.5rem; color: white;"></i>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="alert alert-info mt-3" role="alert">
+              <i class="bi bi-info-circle-fill me-2"></i>
+              <strong>Nota:</strong> La plataforma retiene el 10% por cada servicio completado como comisión.
+            </div>
+          </div>`;
+        
+        tabSaldo.innerHTML = saldoHtml;
+        
+        // Agregar efecto hover a las tarjetas
+        document.querySelectorAll('#tab-saldo .card').forEach(card => {
+          card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-5px)';
+            this.style.boxShadow = '0 8px 24px rgba(0,212,255,0.2)';
+          });
+          card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+            this.style.boxShadow = '0 2px 8px rgba(0,212,255,0.1)';
+          });
+        });
+      }
 
       const tabPendientes = document.getElementById('tab-pendientes');
       const tabActivos = document.getElementById('tab-activos');
@@ -340,8 +525,9 @@ document.addEventListener('DOMContentLoaded', async ()=>{
         try{
           await window.apiRequest(`/pedidos/${id}/assign`, { method: 'POST' });
           window.showSuccess('Solicitud aceptada correctamente', '¡Aceptado!');
-          // refresh pedidos list
+          // refresh pedidos list and user data
           setTimeout(async () => {
+            await reloadUser();
             const newPedidos = await window.apiRequest('/pedidos/profesional');
             renderStatsAndTabs(newPedidos);
           }, 600);
@@ -356,6 +542,7 @@ document.addEventListener('DOMContentLoaded', async ()=>{
             await window.apiRequest(`/pedidos/${id}/reject`, { method: 'POST' });
             window.showSuccess('Solicitud rechazada', 'Rechazado');
             setTimeout(async () => {
+              await reloadUser();
               const newPedidos = await window.apiRequest('/pedidos/profesional');
               renderStatsAndTabs(newPedidos);
             }, 600);

@@ -7,40 +7,134 @@ document.addEventListener('DOMContentLoaded', ()=>{
 
   async function loadPedidos(){
     const token = sessionStorage.getItem('token');
-    if (!token){ pedidosContainer.innerHTML = '<div class="card panel-empty"><div class="text-center"><a href="login.html" class="btn btn-primary">Iniciar sesión para ver tus pedidos</a></div></div>'; return; }
+    if (!token){ 
+      pedidosContainer.innerHTML = '<div class="card shadow-sm border-0 p-4"><div class="text-center"><a href="login.html" class="btn btn-info rounded-pill px-4">Iniciar sesión para ver tus pedidos</a></div></div>'; 
+      return; 
+    }
     try{
       const pedidos = await window.apiRequest('/pedidos/cliente');
+      
+      // Calcular estadísticas
+      const pendientes = pedidos.filter(p => p.estado === 'pendiente' || p.estado === 'asignado').length;
+      const completados = pedidos.filter(p => p.estado === 'completado').length;
+      const total = pedidos.length;
+      
+      // Renderizar stats cards
+      const statsContainer = document.getElementById('statsCards');
+      if (statsContainer) {
+        statsContainer.innerHTML = `
+          <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+              <div class="card-body text-white">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div>
+                    <div class="small opacity-90 mb-1">Total de Solicitudes</div>
+                    <h2 class="mb-0 fw-bold">${total}</h2>
+                  </div>
+                  <div style="width: 60px; height: 60px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                    <i class="bi bi-clipboard-check" style="font-size: 1.8rem;"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+              <div class="card-body text-white">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div>
+                    <div class="small opacity-90 mb-1">En Progreso</div>
+                    <h2 class="mb-0 fw-bold">${pendientes}</h2>
+                  </div>
+                  <div style="width: 60px; height: 60px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                    <i class="bi bi-hourglass-split" style="font-size: 1.8rem;"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+              <div class="card-body text-white">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div>
+                    <div class="small opacity-90 mb-1">Completados</div>
+                    <h2 class="mb-0 fw-bold">${completados}</h2>
+                  </div>
+                  <div style="width: 60px; height: 60px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                    <i class="bi bi-check-circle" style="font-size: 1.8rem;"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+      
       if (!pedidos || pedidos.length===0){
-        pedidosContainer.innerHTML = '<div class="card panel-empty"><div class="text-center text-muted"><p>No tienes solicitudes aún</p><a id="crearPrimera" class="btn btn-info text-white rounded-pill">Crear primera solicitud</a></div></div>';
+        pedidosContainer.innerHTML = `
+          <div class="card border-0 shadow-sm p-5">
+            <div class="text-center text-muted">
+              <i class="bi bi-inbox" style="font-size: 4rem; color: #00d4ff;"></i>
+              <h5 class="mt-3 mb-2">No tienes solicitudes aún</h5>
+              <p class="mb-4">Comienza solicitando tu primer servicio</p>
+              <button id="crearPrimera" class="btn btn-info text-white rounded-pill px-4">
+                <i class="bi bi-plus-circle me-2"></i>Crear primera solicitud
+              </button>
+            </div>
+          </div>`;
         document.getElementById('crearPrimera').addEventListener('click', ()=>{ openPedidoForm(); });
       } else {
-        // Render pedidos en un grid responsivo de 3 columnas
-        let html = '<h5 class="mb-4">Mis pedidos</h5><div class="pedido-grid row g-4">';
+        // Render pedidos en un grid responsivo
+        let html = `
+          <div class="d-flex justify-content-between align-items-center mb-4">
+            <h4 class="mb-0 fw-bold"><i class="bi bi-list-task me-2 text-info"></i>Mis Solicitudes</h4>
+            <span class="badge bg-info rounded-pill px-3 py-2">${pedidos.length} total</span>
+          </div>
+          <div class="row g-4">`;
+        
         pedidos.forEach(p=>{
-          const profesionalText = p.profesional_nombre ? `Profesional: ${p.profesional_nombre}` : (p.profesional_id ? `Profesional: ${p.profesional_id}` : 'Profesional: Sin asignar');
-          const created = p.created_at ? `<div class="small text-muted"><i class="bi bi-calendar-event"></i> ${formatDate(p.created_at)}</div>` : '';
+          const profesionalText = p.profesional_nombre ? p.profesional_nombre : (p.profesional_id ? `Prof. #${p.profesional_id}` : 'Sin asignar');
+          const created = p.created_at ? formatDate(p.created_at) : '';
           
-          // Mostrar botón de reclamo solo si el pedido está asignado o completado y tiene profesional
+          // Colores según estado
+          let estadoColor = 'secondary';
+          let estadoIcon = 'circle';
+          if (p.estado === 'completado') { estadoColor = 'success'; estadoIcon = 'check-circle-fill'; }
+          else if (p.estado === 'asignado') { estadoColor = 'primary'; estadoIcon = 'person-check-fill'; }
+          else if (p.estado === 'pendiente_pago') { estadoColor = 'warning'; estadoIcon = 'cash-coin'; }
+          else if (p.estado === 'pendiente') { estadoColor = 'info'; estadoIcon = 'clock-fill'; }
+          
           const puedeReclamar = p.profesional_id && (p.estado === 'asignado' || p.estado === 'completado' || p.estado === 'pendiente_pago');
           
           html += `
             <div class="col-12 col-md-6 col-lg-4">
-              <div class="card pedido-card h-100 p-3">
-                <div class="d-flex justify-content-between align-items-start">
-                  <div>
-                    <h6 class="mb-1">${p.categoria || 'Servicio'}</h6>
-                    <div class="small text-muted">${p.descripcion || ''}</div>
+              <div class="card border-0 shadow-sm h-100 hover-shadow" style="transition: all 0.3s ease;">
+                <div class="card-body">
+                  <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                      <span class="badge bg-${estadoColor} bg-opacity-10 text-${estadoColor} mb-2">
+                        <i class="bi bi-${estadoIcon} me-1"></i>${p.estado}
+                      </span>
+                      <h5 class="mb-1 fw-bold">${p.categoria || 'Servicio'}</h5>
+                    </div>
                   </div>
-                  <div><span class="pedido-estado">${p.estado}</span></div>
-                </div>
-                <div class="mt-3 pedido-meta">
-                  ${p.direccion ? '<div><i class="bi bi-geo-alt-fill"></i> '+p.direccion+'</div>' : ''}
-                  ${created}
-                  <div><i class="bi bi-person-fill"></i> ${profesionalText}</div>
-                  ${p.profesional_id ? `<div class="mt-2"><button class="btn btn-sm btn-outline-info chatBtn" data-pedido-id="${p.id}" data-destinatario-id="${p.profesional_id}"><i class="bi bi-chat-dots"></i> Enviar mensaje</button></div>` : ''}
-                  ${p.estado === 'pendiente_pago' ? `<div class="mt-3"><button class="btn btn-sm btn-aqua payBtn" data-id="${p.id}" data-price="${p.precio || 0}">Pagar (simulado)</button></div>` : ''}
-                  ${p.estado === 'completado' ? `<div class="mt-3"><button class="btn btn-sm btn-outline-primary calificarBtn" data-id="${p.id}">Calificar</button></div>` : ''}
-                  ${puedeReclamar ? `<div class="mt-2"><button class="btn btn-sm btn-outline-danger reclamarBtn" data-pedido-id="${p.id}" data-profesional="${p.profesional_nombre || 'Profesional'}"><i class="bi bi-exclamation-triangle"></i> Reclamar</button></div>` : ''}
+                  
+                  <p class="text-muted small mb-3">${p.descripcion || ''}</p>
+                  
+                  <div class="border-top pt-3 mt-3">
+                    ${p.direccion ? `<div class="small mb-2"><i class="bi bi-geo-alt-fill text-info me-2"></i>${p.direccion}</div>` : ''}
+                    ${created ? `<div class="small mb-2"><i class="bi bi-calendar-event text-info me-2"></i>${created}</div>` : ''}
+                    <div class="small mb-2"><i class="bi bi-person-fill text-info me-2"></i>${profesionalText}</div>
+                    ${p.precio ? `<div class="small fw-bold text-success"><i class="bi bi-cash me-2"></i>Bs. ${p.precio}</div>` : ''}
+                  </div>
+                  
+                  <div class="mt-3 d-flex flex-column gap-2">
+                    ${p.profesional_id ? `<button class="btn btn-sm btn-outline-info rounded-pill chatBtn" data-pedido-id="${p.id}" data-destinatario-id="${p.profesional_id}"><i class="bi bi-chat-dots me-1"></i> Enviar mensaje</button>` : ''}
+                    ${p.estado === 'pendiente_pago' ? `<button class="btn btn-sm btn-info text-white rounded-pill payBtn" data-id="${p.id}" data-price="${p.precio || 0}"><i class="bi bi-cash-coin me-1"></i> Pagar ahora</button>` : ''}
+                    ${p.estado === 'completado' ? `<button class="btn btn-sm btn-success rounded-pill calificarBtn" data-id="${p.id}"><i class="bi bi-star me-1"></i> Calificar servicio</button>` : ''}
+                    ${puedeReclamar ? `<button class="btn btn-sm btn-outline-danger rounded-pill reclamarBtn" data-pedido-id="${p.id}" data-profesional="${profesionalText}"><i class="bi bi-exclamation-triangle me-1"></i> Reclamar</button>` : ''}
+                  </div>
                 </div>
               </div>
             </div>`;
@@ -49,8 +143,17 @@ document.addEventListener('DOMContentLoaded', ()=>{
         pedidosContainer.innerHTML = html;
       }
     }catch(e){ 
-      // En caso de error en el servidor, mostramos la CTA para crear la primera solicitud
-      pedidosContainer.innerHTML = '<div class="card panel-empty"><div class="text-center text-muted"><p>No tienes solicitudes aún</p><a id="crearPrimera" class="btn btn-info text-white rounded-pill">Crear primera solicitud</a></div></div>';
+      pedidosContainer.innerHTML = `
+        <div class="card border-0 shadow-sm p-5">
+          <div class="text-center text-muted">
+            <i class="bi bi-inbox" style="font-size: 4rem; color: #00d4ff;"></i>
+            <h5 class="mt-3 mb-2">No tienes solicitudes aún</h5>
+            <p class="mb-4">Comienza solicitando tu primer servicio</p>
+            <button id="crearPrimera" class="btn btn-info text-white rounded-pill px-4">
+              <i class="bi bi-plus-circle me-2"></i>Crear primera solicitud
+            </button>
+          </div>
+        </div>`;
       const crearBtn = document.getElementById('crearPrimera');
       if (crearBtn) crearBtn.addEventListener('click', ()=>{ openPedidoForm(); });
       console.error('Error cargando pedidos en frontend:', e);

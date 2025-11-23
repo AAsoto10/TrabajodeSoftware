@@ -15,11 +15,11 @@ window.showModal = function(options) {
   let modal = document.getElementById('globalModal');
   if (!modal) {
     const modalHTML = `
-      <div class="modal fade" id="globalModal" tabindex="-1" aria-hidden="true">
+      <div class="modal fade" id="globalModal" tabindex="-1" aria-labelledby="globalModalLabel">
         <div class="modal-dialog modal-dialog-centered">
           <div class="modal-content">
             <div class="modal-header border-0 pb-0">
-              <h5 class="modal-title d-flex align-items-center gap-2">
+              <h5 class="modal-title d-flex align-items-center gap-2" id="globalModalLabel">
                 <i class="modal-icon"></i>
                 <span class="modal-title-text"></span>
               </h5>
@@ -37,6 +37,11 @@ window.showModal = function(options) {
       </div>`;
     document.body.insertAdjacentHTML('beforeend', modalHTML);
     modal = document.getElementById('globalModal');
+    
+    // Agregar listener para remover aria-hidden cuando el modal se muestre
+    modal.addEventListener('shown.bs.modal', function () {
+      this.removeAttribute('aria-hidden');
+    });
   }
 
   // Configurar colores e iconos según tipo
@@ -74,17 +79,33 @@ window.showModal = function(options) {
 
   // Configurar eventos
   modalConfirmBtn.onclick = () => {
+    const bsModalInstance = bootstrap.Modal.getInstance(modal);
     if (onConfirm) onConfirm();
-    bootstrap.Modal.getInstance(modal)?.hide();
+    if (bsModalInstance) {
+      bsModalInstance.hide();
+    }
   };
 
   modalCancelBtn.onclick = () => {
+    const bsModalInstance = bootstrap.Modal.getInstance(modal);
     if (onCancel) onCancel();
-    bootstrap.Modal.getInstance(modal)?.hide();
+    if (bsModalInstance) {
+      bsModalInstance.hide();
+    }
   };
 
+  // Limpiar instancia anterior si existe
+  const existingInstance = bootstrap.Modal.getInstance(modal);
+  if (existingInstance) {
+    existingInstance.dispose();
+  }
+
   // Mostrar modal
-  const bsModal = new bootstrap.Modal(modal);
+  const bsModal = new bootstrap.Modal(modal, {
+    backdrop: true,
+    keyboard: true,
+    focus: true
+  });
   bsModal.show();
 
   return bsModal;

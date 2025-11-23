@@ -843,7 +843,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
   };
 
   // Wire nav tabs
-  const navLinks = document.querySelectorAll('.nav-pills .nav-link');
+  const navLinks = document.querySelectorAll('.nav-pills-modern .nav-link, .nav-pills .nav-link');
   if (navLinks && navLinks.length){
     navLinks[0].addEventListener('click', (ev)=>{ ev.preventDefault(); navLinks.forEach(n=>n.classList.remove('active')); navLinks[0].classList.add('active'); loadPendientes(); });
     if (navLinks[1]) navLinks[1].addEventListener('click', (ev)=>{ ev.preventDefault(); navLinks.forEach(n=>n.classList.remove('active')); navLinks[1].classList.add('active'); loadProfesionales(); });
