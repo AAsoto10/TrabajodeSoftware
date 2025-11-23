@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: hogarfix
+    env: node
+    buildCommand: cd backend && npm install && npm rebuild sqlite3
+    startCommand: cd backend && npm start
+    healthCheckPath: /
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000

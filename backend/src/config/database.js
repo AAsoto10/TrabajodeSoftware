@@ -1,0 +1,176 @@
+const path = require('path');
+const sqlite3 = require('sqlite3').verbose();
+const { open } = require('sqlite');
+const bcrypt = require('bcryptjs');
+
+const DB_PATH = path.join(__dirname, '..', '..', 'database.db');
+
+let db;
+
+async function initDB(){
+  db = await open({ filename: DB_PATH, driver: sqlite3.Database });
+
+  await db.exec(`
+    CREATE TABLE IF NOT EXISTS users (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      nombre TEXT,
+      email TEXT UNIQUE,
+      password TEXT,
+      role TEXT,
+      estado_validacion TEXT DEFAULT 'aprobado',
+      categoria TEXT,
+      saldo REAL DEFAULT 0,
+      foto_ci TEXT,
+      motivacion TEXT,
+      activo INTEGER DEFAULT 1
+    );
+
+    CREATE TABLE IF NOT EXISTS pedidos (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      cliente_id INTEGER,
+      profesional_id INTEGER,
+      categoria TEXT,
+      descripcion TEXT,
+      precio REAL,
+      estado TEXT DEFAULT 'pendiente',
+      fechaHora TEXT,
+      direccion TEXT,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP
+    );
+    
+    CREATE TABLE IF NOT EXISTS profiles (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER,
+      categoria TEXT,
+      tarifa REAL,
+      zona TEXT,
+      biografia TEXT,
+      certificados TEXT,
+      avatar TEXT,
+      estado_validacion TEXT DEFAULT 'pendiente',
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP
+    );
+    
+    CREATE TABLE IF NOT EXISTS commissions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      pedido_id INTEGER,
+      amount REAL,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS ratings (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      pedido_id INTEGER,
+      profesional_id INTEGER,
+      cliente_id INTEGER,
+      categoria TEXT,
+      rating INTEGER,
+      comentario TEXT,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS reclamos (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      pedido_id INTEGER,
+      cliente_id INTEGER,
+      profesional_id INTEGER,
+      motivo TEXT,
+      descripcion TEXT,
+      estado TEXT DEFAULT 'pendiente',
+      respuesta_admin TEXT,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      resolved_at TEXT
+    );
+
+    CREATE TABLE IF NOT EXISTS mensajes (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      pedido_id INTEGER,
+      remitente_id INTEGER,
+      destinatario_id INTEGER,
+      mensaje TEXT NOT NULL,
+      leido INTEGER DEFAULT 0,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (pedido_id) REFERENCES pedidos(id),
+      FOREIGN KEY (remitente_id) REFERENCES users(id),
+      FOREIGN KEY (destinatario_id) REFERENCES users(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS categorias (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      nombre TEXT NOT NULL UNIQUE,
+      descripcion TEXT,
+      icono TEXT DEFAULT 'bi-tools',
+      activo INTEGER DEFAULT 1,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP
+    );
+  `);
+
+  // Seed admin - INSERT OR IGNORE via checking existence
+  const adminEmail = 'admin@hogarfix.local';
+  const existing = await db.get('SELECT id FROM users WHERE email = ?', adminEmail);
+  if (!existing) {
+    const hash = bcrypt.hashSync('admin123', 10);
+    await db.run('INSERT INTO users (nombre,email,password,role,estado_validacion) VALUES (?,?,?,?,?)', ['Admin','admin@hogarfix.local', hash, 'admin','aprobado']);
+    console.log('Admin seed creado: admin@hogarfix.local / admin123');
+  }
+
+  // Seed categorías predeterminadas
+  const categorias = await db.all('SELECT COUNT(*) as count FROM categorias');
+  if (categorias[0].count === 0) {
+    await db.run("INSERT INTO categorias (nombre, descripcion, icono) VALUES (?, ?, ?)", ['Electricidad', 'Instalación y reparación de sistemas eléctricos', 'bi-lightning-charge']);
+    await db.run("INSERT INTO categorias (nombre, descripcion, icono) VALUES (?, ?, ?)", ['Plomería', 'Reparación e instalación de tuberías y sanitarios', 'bi-droplet']);
+    await db.run("INSERT INTO categorias (nombre, descripcion, icono) VALUES (?, ?, ?)", ['Pintura', 'Servicios de pintura interior y exterior', 'bi-brush']);
+    await db.run("INSERT INTO categorias (nombre, descripcion, icono) VALUES (?, ?, ?)", ['Albañilería', 'Construcción y reparación de estructuras', 'bi-bricks']);
+    await db.run("INSERT INTO categorias (nombre, descripcion, icono) VALUES (?, ?, ?)", ['Carpintería', 'Fabricación y reparación de muebles de madera', 'bi-hammer']);
+    console.log('✅ Categorías predeterminadas creadas');
+  }
+  // Ensure categoria column exists for older DBs
+  try{
+    await db.run("ALTER TABLE users ADD COLUMN categoria TEXT");
+  }catch(e){ /* ignore if column exists */ }
+  // Ensure professional profile columns exist
+  try{ await db.run("ALTER TABLE users ADD COLUMN tarifa REAL"); }catch(e){}
+  try{ await db.run("ALTER TABLE users ADD COLUMN zona TEXT"); }catch(e){}
+  try{ await db.run("ALTER TABLE users ADD COLUMN biografia TEXT"); }catch(e){}
+  try{ await db.run("ALTER TABLE users ADD COLUMN certificados TEXT"); }catch(e){}
+  try{ await db.run("ALTER TABLE users ADD COLUMN avatar TEXT"); }catch(e){}
+  try{ await db.run("ALTER TABLE users ADD COLUMN activo INTEGER DEFAULT 1"); }catch(e){}
+  try{ await db.run("ALTER TABLE users ADD COLUMN created_at TEXT DEFAULT CURRENT_TIMESTAMP"); }catch(e){}
+
+  // Ensure pedidos has fechaHora and direccion for new features
+  try{ await db.run("ALTER TABLE pedidos ADD COLUMN fechaHora TEXT"); }catch(e){}
+  try{ await db.run("ALTER TABLE pedidos ADD COLUMN direccion TEXT"); }catch(e){}
+  
+  // Ensure ratings has categoria column
+  try{ await db.run("ALTER TABLE ratings ADD COLUMN categoria TEXT"); }catch(e){}
+
+  // Migrar categoría a ratings existentes desde sus pedidos
+  try{
+    const ratingsWithoutCategoria = await db.all("SELECT r.id, p.categoria FROM ratings r JOIN pedidos p ON r.pedido_id = p.id WHERE r.categoria IS NULL");
+    for (const r of ratingsWithoutCategoria){
+      if (r.categoria) {
+        await db.run('UPDATE ratings SET categoria = ? WHERE id = ?', [r.categoria, r.id]);
+      }
+    }
+    console.log(`Actualizadas ${ratingsWithoutCategoria.length} calificaciones con categoría desde pedidos`);
+  }catch(e){ console.warn('Migration de categoría en ratings skipped or failed', e.message); }
+
+  // Migrate existing single-user profiles into new `profiles` table (if any)
+  try{
+    const usersWithProfile = await db.all("SELECT id,categoria,tarifa,zona,biografia,certificados,avatar FROM users WHERE categoria IS NOT NULL AND categoria <> ''");
+    for (const u of usersWithProfile){
+      // check if a similar profile already exists
+      const existing = await db.get('SELECT id FROM profiles WHERE user_id = ? AND lower(categoria) = lower(?)', [u.id, u.categoria]);
+      if (!existing){
+        await db.run('INSERT INTO profiles (user_id,categoria,tarifa,zona,biografia,certificados,avatar,estado_validacion) VALUES (?,?,?,?,?,?,?,?)', [u.id, u.categoria, u.tarifa || 0, u.zona || null, u.biografia || null, u.certificados || null, u.avatar || null, 'aprobado']);
+      }
+    }
+  }catch(e){ console.warn('Profile migration skipped or failed', e.message); }
+}
+
+function getDB(){
+  if (!db) throw new Error('DB no inicializada. Llama initDB primero');
+  return db;
+}
+
+module.exports = { initDB, getDB };

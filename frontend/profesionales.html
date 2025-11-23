@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Profesionales - HogarFix</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="CSS/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+  </head>
+  <body>
+      <nav class="site-header fixed-top">
+        <div class="container d-flex align-items-center">
+          <a class="navbar-brand" href="index.html">
+            <img src="images/logo.png" alt="HogarFix Logo" style="height:60px; width:auto; margin-right:12px; object-fit:contain;">
+            <span class="fw-bold h4 mb-0 text-dark">HogarFix</span>
+          </a>
+          <ul class="nav mx-auto">
+            <li class="nav-item"><a class="nav-link" href="index.html">Inicio</a></li>
+            <li class="nav-item"><a class="nav-link" href="profesionales.html">Servicios</a></li>
+            <li class="nav-item"><a class="nav-link" href="sobre-nosotros.html">Sobre Nosotros</a></li>
+          </ul>
+          <div class="ms-auto">
+            <a href="login.html" class="btn btn-info rounded-pill px-4">Iniciar Sesión</a>
+          </div>
+        </div>
+      </nav>
+
+    <main class="container my-5">
+      <h2 id="title" class="mb-4">Profesionales</h2>
+      
+      <!-- Filtros compactos - Solo se muestran si NO hay categoría específica -->
+      <div id="filtrosContainer" class="card mb-4 p-3" style="background-color: #f8f9fa; display: none;">
+        <div class="row g-3 align-items-end">
+          <div class="col-md-3">
+            <label class="form-label small mb-1"><i class="bi bi-search"></i> Buscar por zona o nombre</label>
+            <input type="text" id="filtroZona" class="form-control" placeholder="Escribe para buscar...">
+          </div>
+          <div class="col-md-2">
+            <label class="form-label small mb-1">Tarifa máxima</label>
+            <input type="number" id="filtroTarifaMax" class="form-control" placeholder="Ej: 50" min="0">
+          </div>
+          <div class="col-md-2">
+            <label class="form-label small mb-1">Calificación</label>
+            <select id="filtroRating" class="form-select">
+              <option value="">Todas</option>
+              <option value="3">★★★ </option>
+              <option value="4">★★★★ </option>
+              <option value="5">★★★★★ </option>
+            </select>
+          </div>
+          <div class="col-md-2">
+            <button id="btnAplicarFiltros" class="btn btn-primary w-100">
+              <i class="bi bi-funnel"></i> Filtrar
+            </button>
+          </div>
+          <div class="col-md-3">
+            <button id="btnLimpiarFiltros" class="btn btn-outline-secondary w-100">
+              <i class="bi bi-x-circle"></i> Mostrar todos
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div id="list" class="row g-4"></div>
+    </main>
+
+    <!-- Modal para solicitar servicio -->
+    <div class="modal fade" id="solicitarModal" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Solicitar Servicio</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+          </div>
+          <div class="modal-body">
+            <form id="solicitarForm">
+              <input type="hidden" id="profesionalId">
+              <input type="hidden" id="modalCategoria">
+              <div class="mb-3">
+                <label class="form-label">Descripción del problema</label>
+                <textarea id="desc" class="form-control" rows="4" placeholder="Describe el trabajo que necesitas..." required></textarea>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Fecha y hora preferida</label>
+                <input id="fechaHora" type="datetime-local" class="form-control" />
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Dirección</label>
+                <input id="direccion" type="text" class="form-control" placeholder="Tu dirección completa" />
+              </div>
+              <div class="d-flex gap-2">
+                <button type="button" class="btn btn-outline-secondary flex-fill" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" class="btn btn-info text-white flex-fill">Enviar Solicitud</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal para ver información completa del profesional -->
+    <div class="modal fade" id="infoModal" tabindex="-1">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header bg-light">
+            <div class="d-flex align-items-center gap-3">
+              <img id="infoAvatar" src="" width="60" height="60" style="border-radius:12px;object-fit:cover" />
+              <div>
+                <h5 class="modal-title mb-1" id="infoNombre"></h5>
+                <span id="infoCategoriaBadge" class="badge bg-primary"></span>
+              </div>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <div class="d-flex align-items-center gap-2 mb-2">
+                <i class="bi bi-star-fill text-warning fs-5"></i>
+                <span id="infoRating" class="fw-bold"></span>
+              </div>
+              <div class="d-flex align-items-center gap-2 mb-3">
+                <i class="bi bi-geo-alt-fill text-primary"></i>
+                <span id="infoZona" class="text-muted"></span>
+              </div>
+            </div>
+            <hr>
+            <div class="mb-3">
+              <h6 class="fw-bold mb-2"><i class="bi bi-person-lines-fill"></i> Biografía</h6>
+              <p id="infoBiografia" class="text-muted" style="white-space: pre-line;"></p>
+            </div>
+            <div id="infoCertificadosSection" class="mb-3" style="display: none;">
+              <hr>
+              <h6 class="fw-bold mb-2"><i class="bi bi-award-fill text-success"></i> Certificados</h6>
+              <div id="infoCertificados" class="d-flex flex-wrap gap-2"></div>
+            </div>
+            <hr>
+            <div class="mb-3">
+              <h6 class="text-muted mb-1">Tarifa por hora</h6>
+              <div class="h3 text-primary fw-bold mb-0">Bs. <span id="infoTarifa"></span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal para ver calificaciones -->
+    <div class="modal fade" id="calificacionesModal" tabindex="-1">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <div>
+              <h5 class="modal-title mb-1">Calificaciones de <span id="calificacionesNombre" class="text-info"></span></h5>
+              <small class="text-muted"><i class="bi bi-briefcase-fill"></i> <span id="calificacionesCategoria"></span></small>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+          </div>
+          <div class="modal-body" style="max-height: 500px; overflow-y: auto;">
+            <div id="calificacionesList"></div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/modalHelper.js"></script>
+    <script src="js/apiService.js"></script>
+      <script src="js/header.js"></script>
+      <script src="js/profesionales.js"></script>
+  </body>
+</html>
