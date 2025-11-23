@@ -44,6 +44,11 @@ app.use('/api/mensajes', authMiddleware, mensajeController);
 // Notificaciones: /stream sin authMiddleware (maneja token internamente), resto con middleware
 app.use('/api/notifications', notificationController);
 
+// Ruta raíz: redirige a la página principal del frontend
+app.get('/', (req, res) => {
+  res.redirect('/frontend/index.html');
+});
+
 const PORT = process.env.PORT || 3000;
 
 initDB().then(()=>{
