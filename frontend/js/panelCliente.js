@@ -96,36 +96,56 @@ document.addEventListener('DOMContentLoaded', ()=>{
     });
   }
 
-  // handler para pagar (simulado)
+  // handler para pagar (mostrar QR del profesional)
   pedidosContainer.addEventListener('click', async (ev)=>{
     const btn = ev.target.closest && ev.target.closest('.payBtn');
     if (!btn) return;
     const id = btn.dataset.id;
     const defaultPrice = btn.dataset.price ? Number(btn.dataset.price) : 0;
     
-    window.showModal({
-      title: 'Procesar Pago',
-      message: `<div class="mb-3">
-        <label class="form-label">Ingrese el monto a pagar:</label>
-        <input type="number" class="form-control" id="paymentAmount" value="${defaultPrice || ''}" step="0.01" min="0.01">
-      </div>`,
-      type: 'info',
-      confirmText: 'Pagar',
-      cancelText: 'Cancelar',
-      showCancel: true,
-      onConfirm: async () => {
-        const amount = Number(document.getElementById('paymentAmount').value);
-        if (isNaN(amount) || amount <= 0) {
-          window.showError('Monto inválido', 'Error');
-          return;
-        }
-        try{
-          await window.apiRequest(`/pedidos/${id}/pay`, { method: 'POST', body: JSON.stringify({ amount }) });
-          window.showSuccess(`Pago de Bs. ${amount.toFixed(2)} procesado correctamente`, '¡Pago Exitoso!');
-          setTimeout(() => loadPedidos(), 800);
-        }catch(err){ window.showError(err.message||'Error al procesar el pago', 'Error'); }
+    try {
+      // Obtener QR del profesional
+      const data = await window.apiRequest(`/pedidos/${id}/qr-pago`);
+      
+      if (!data.qr_pago) {
+        window.showError('El profesional no tiene configurado un QR de pago', 'Error');
+        return;
       }
-    });
+      
+      window.showModal({
+        title: 'Pagar al Profesional',
+        message: `
+          <div class="text-center">
+            <p class="mb-3"><strong>Monto a pagar: Bs. ${(data.precio || defaultPrice).toFixed(2)}</strong></p>
+            <div class="mb-3">
+              <img src="${data.qr_pago}" alt="QR de Pago" style="max-width: 300px; border: 2px solid #28a745; border-radius: 8px;" />
+            </div>
+            <p class="small text-muted">Escanea este QR con tu app bancaria o billetera digital para realizar el pago</p>
+            <div class="alert alert-info mt-3">
+              <i class="bi bi-info-circle"></i> Una vez realizado el pago, haz clic en "Confirmar Pago" para notificar al profesional
+            </div>
+          </div>
+        `,
+        type: 'info',
+        confirmText: 'Confirmar Pago',
+        cancelText: 'Cancelar',
+        showCancel: true,
+        onConfirm: async () => {
+          const amount = data.precio || defaultPrice;
+          try{
+            const payload = { amount: Number(amount) };
+            await window.apiRequest(`/pedidos/${id}/pay`, { 
+              method: 'POST', 
+              body: JSON.stringify(payload) 
+            });
+            window.showSuccess(`Pago de Bs. ${amount.toFixed(2)} confirmado`, '¡Pago Registrado!');
+            setTimeout(() => loadPedidos(), 800);
+          }catch(err){ window.showError(err.message||'Error al confirmar el pago', 'Error'); }
+        }
+      });
+    } catch(err) {
+      window.showError(err.message || 'Error al obtener el QR de pago', 'Error');
+    }
   });
 
   // Calificar: abrir modal cuando cliente da click en calificar

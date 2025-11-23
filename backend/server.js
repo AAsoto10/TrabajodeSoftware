@@ -20,7 +20,9 @@ const adminMiddleware = require('./src/middleware/adminMiddleware');
 const backupService = require('./src/services/backupService');
 
 const app = express();
-app.use(express.json());
+// Aumentar límite para permitir imágenes en base64 (hasta 10MB)
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
 // Static frontend
 app.use('/frontend', express.static(path.join(__dirname, '..', 'frontend')));

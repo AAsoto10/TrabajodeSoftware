@@ -21,6 +21,10 @@ async function migrate() {
       ALTER TABLE users ADD COLUMN activo INTEGER DEFAULT 1;
     `).catch(() => console.log('Columna activo ya existe'));
 
+    await db.exec(`
+      ALTER TABLE users ADD COLUMN qr_pago TEXT;
+    `).catch(() => console.log('Columna qr_pago ya existe'));
+
     console.log('✅ Migración completada exitosamente');
   } catch (err) {
     console.error('Error en migración:', err.message);
