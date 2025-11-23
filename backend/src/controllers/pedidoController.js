@@ -3,6 +3,7 @@ const router = express.Router();
 const pedidoService = require('../services/pedidoService');
 const pedidoRepo = require('../repositories/pedidoRepository');
 const { getDB } = require('../config/database');
+const notificationService = require('../services/notificationService');
 
 console.log('pedidoController loaded. pedidoRepo keys:', pedidoRepo && Object.keys ? Object.keys(pedidoRepo) : typeof pedidoRepo);
 
@@ -12,6 +13,12 @@ router.post('/', async (req,res)=>{
     const user = req.user; // from authMiddleware
     const { categoria, descripcion, precio, profesionalId } = req.body;
     const out = await pedidoService.createPedido({ cliente_id: user.id, profesional_id: profesionalId, categoria, descripcion, precio });
+    
+    // Notificar al profesional si está asignado
+    if (profesionalId) {
+      notificationService.notifyNewServiceRequest(profesionalId, out.id);
+    }
+    
     res.json({ message: 'Pedido creado', id: out.id });
   }catch(err){ console.error('POST /api/pedidos error:', err); res.status(400).json({message:err.message}); }
 });
@@ -83,8 +90,18 @@ router.post('/:id/assign', async (req,res)=>{
     let profesionalId = req.body.profesionalId;
     if (user.role === 'profesional') profesionalId = user.id;
     if (!profesionalId) return res.status(400).json({message:'Falta profesionalId'});
+    
+    // Obtener info del pedido para notificar al cliente
+    const pedido = await require('../repositories/pedidoRepository').getPedido(pedidoId);
+    
     // assign
     const out = await require('../repositories/pedidoRepository').assignToProfessional(pedidoId, profesionalId);
+    
+    // Notificar al cliente que su solicitud fue aceptada
+    if (pedido && pedido.cliente_id) {
+      notificationService.notifyServiceResponse(pedido.cliente_id, pedidoId, true);
+    }
+    
     res.json({ message: 'Pedido asignado', out });
   }catch(err){ console.error('POST /api/pedidos/:id/assign error:', err); res.status(500).json({message:err.message}); }
 });
@@ -95,7 +112,17 @@ router.post('/:id/reject', async (req,res)=>{
     const pedidoId = req.params.id;
     const user = req.user;
     if (user.role !== 'profesional') return res.status(403).json({message:'Sólo profesionales pueden rechazar pedidos'});
+    
+    // Obtener info del pedido para notificar al cliente
+    const pedido = await require('../repositories/pedidoRepository').getPedido(pedidoId);
+    
     const out = await require('../repositories/pedidoRepository').rejectPedido(pedidoId);
+    
+    // Notificar al cliente que su solicitud fue rechazada
+    if (pedido && pedido.cliente_id) {
+      notificationService.notifyServiceResponse(pedido.cliente_id, pedidoId, false);
+    }
+    
     res.json({ message: 'Pedido rechazado', out });
   }catch(err){ console.error('POST /api/pedidos/:id/reject error:', err); res.status(500).json({message:err.message}); }
 });
@@ -122,6 +149,12 @@ router.post('/:id/ready', async (req,res)=>{
     }
     
     const out = await require('../repositories/pedidoRepository').markPendingPayment(pedidoId);
+    
+    // Notificar al cliente que el trabajo está listo para pago
+    if (pedido && pedido.cliente_id) {
+      notificationService.notifyReadyForPayment(pedido.cliente_id, pedidoId);
+    }
+    
     res.json({ message: 'Pedido marcado pendiente de pago', out });
   }catch(err){ console.error('POST /api/pedidos/:id/ready error:', err); res.status(500).json({message:err.message}); }
 });
@@ -202,6 +235,60 @@ router.get('/:id/qr-pago', async (req,res)=>{
     console.log('Devolviendo precio:', precio, 'tipo:', typeof precio);
     res.json({ qr_pago: profesional.qr_pago, precio });
   }catch(err){ console.error('GET /api/pedidos/:id/qr-pago error:', err); res.status(500).json({message:err.message}); }
+});
+
+// Cliente sube comprobante de pago
+router.post('/:id/comprobante', async (req,res)=>{
+  try{
+    const pedidoId = req.params.id;
+    const user = req.user;
+    const { comprobante } = req.body;
+    
+    if (!comprobante) return res.status(400).json({message:'Falta el comprobante'});
+    
+    const pedido = await pedidoRepo.getPedido(pedidoId);
+    if (!pedido) return res.status(404).json({message:'Pedido no encontrado'});
+    if (String(pedido.cliente_id) !== String(user.id)) return res.status(403).json({message:'No autorizado'});
+    if (pedido.estado !== 'pendiente_pago') return res.status(400).json({message:'El pedido no está pendiente de pago'});
+    
+    await pedidoRepo.uploadComprobante(pedidoId, comprobante);
+    
+    // Notificar al profesional que el cliente subió el comprobante
+    if (pedido && pedido.profesional_id) {
+      notificationService.notifyPaymentReceiptUploaded(pedido.profesional_id, pedidoId);
+    }
+    
+    res.json({ message: 'Comprobante subido exitosamente' });
+  }catch(err){ console.error('POST /api/pedidos/:id/comprobante error:', err); res.status(500).json({message:err.message}); }
+});
+
+// Profesional verifica comprobante y finaliza trabajo
+router.post('/:id/verificar-comprobante', async (req,res)=>{
+  try{
+    const pedidoId = req.params.id;
+    const user = req.user;
+    
+    if (user.role !== 'profesional') return res.status(403).json({message:'Sólo profesionales'});
+    
+    const pedido = await pedidoRepo.getPedido(pedidoId);
+    if (!pedido) return res.status(404).json({message:'Pedido no encontrado'});
+    if (String(pedido.profesional_id) !== String(user.id)) return res.status(403).json({message:'No autorizado'});
+    if (!pedido.comprobante_pago) return res.status(400).json({message:'No hay comprobante subido'});
+    
+    // Verificar comprobante
+    await pedidoRepo.verifyComprobante(pedidoId, user.id);
+    
+    // Completar pedido y actualizar saldo
+    const result = await pedidoRepo.completePedido(pedidoId, user.id);
+    
+    // Notificar al cliente que el trabajo fue completado
+    const pedidoActualizado = await pedidoRepo.getPedido(pedidoId);
+    if (pedidoActualizado && pedidoActualizado.cliente_id) {
+      notificationService.notifyServiceCompleted(pedidoActualizado.cliente_id, pedidoId);
+    }
+    
+    res.json({ message: 'Comprobante verificado y trabajo finalizado', result });
+  }catch(err){ console.error('POST /api/pedidos/:id/verificar-comprobante error:', err); res.status(500).json({message:err.message}); }
 });
 
 module.exports = router;

@@ -103,6 +103,19 @@ async function initDB(){
       activo INTEGER DEFAULT 1,
       created_at TEXT DEFAULT CURRENT_TIMESTAMP
     );
+
+    CREATE TABLE IF NOT EXISTS notifications (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      type TEXT NOT NULL,
+      title TEXT NOT NULL,
+      message TEXT NOT NULL,
+      pedido_id INTEGER,
+      leido INTEGER DEFAULT 0,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id),
+      FOREIGN KEY (pedido_id) REFERENCES pedidos(id)
+    );
   `);
 
   // Seed admin - INSERT OR IGNORE via checking existence
@@ -134,12 +147,15 @@ async function initDB(){
   try{ await db.run("ALTER TABLE users ADD COLUMN biografia TEXT"); }catch(e){}
   try{ await db.run("ALTER TABLE users ADD COLUMN certificados TEXT"); }catch(e){}
   try{ await db.run("ALTER TABLE users ADD COLUMN avatar TEXT"); }catch(e){}
+  try{ await db.run("ALTER TABLE users ADD COLUMN qr_pago TEXT"); }catch(e){}
   try{ await db.run("ALTER TABLE users ADD COLUMN activo INTEGER DEFAULT 1"); }catch(e){}
   try{ await db.run("ALTER TABLE users ADD COLUMN created_at TEXT DEFAULT CURRENT_TIMESTAMP"); }catch(e){}
 
   // Ensure pedidos has fechaHora and direccion for new features
   try{ await db.run("ALTER TABLE pedidos ADD COLUMN fechaHora TEXT"); }catch(e){}
   try{ await db.run("ALTER TABLE pedidos ADD COLUMN direccion TEXT"); }catch(e){}
+  try{ await db.run("ALTER TABLE pedidos ADD COLUMN comprobante_pago TEXT"); }catch(e){}
+  try{ await db.run("ALTER TABLE pedidos ADD COLUMN comprobante_verificado INTEGER DEFAULT 0"); }catch(e){}
   
   // Ensure ratings has categoria column
   try{ await db.run("ALTER TABLE ratings ADD COLUMN categoria TEXT"); }catch(e){}

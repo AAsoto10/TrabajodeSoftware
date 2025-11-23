@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const mensajeRepo = require('../repositories/mensajeRepository');
+const notificationService = require('../services/notificationService');
 
 /**
  * Crear un nuevo mensaje
@@ -22,6 +23,17 @@ router.post('/', async (req, res) => {
       destinatario_id,
       mensaje
     });
+
+    // Obtener nombre del remitente para la notificación
+    const db = require('../config/database').getDB();
+    const remitente = await db.get('SELECT nombre FROM users WHERE id = ?', user.id);
+    
+    // Notificar al destinatario
+    notificationService.notifyNewMessage(
+      destinatario_id, 
+      pedido_id, 
+      remitente ? remitente.nombre : 'Usuario'
+    );
 
     res.json({ message: 'Mensaje enviado', id: result.id });
   } catch (err) {

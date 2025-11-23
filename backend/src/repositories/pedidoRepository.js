@@ -89,6 +89,22 @@ const markPendingPayment = async (pedidoId)=>{
   return { pedidoId, estado: 'pendiente_pago' };
 }
 
+const uploadComprobante = async (pedidoId, comprobanteBase64)=>{
+  const db = getDB();
+  await db.run('UPDATE pedidos SET comprobante_pago = ?, comprobante_verificado = 0 WHERE id = ?', [comprobanteBase64, pedidoId]);
+  return { pedidoId };
+}
+
+const verifyComprobante = async (pedidoId, profesionalId)=>{
+  const db = getDB();
+  const pedido = await db.get('SELECT * FROM pedidos WHERE id = ?', pedidoId);
+  if (!pedido) throw new Error('Pedido no encontrado');
+  if (String(pedido.profesional_id) !== String(profesionalId)) throw new Error('No autorizado');
+  
+  await db.run('UPDATE pedidos SET comprobante_verificado = 1 WHERE id = ?', [pedidoId]);
+  return { pedidoId };
+}
+
 const getPedido = async (pedidoId) => {
   const db = getDB();
   return db.get('SELECT * FROM pedidos WHERE id = ?', pedidoId);
@@ -116,4 +132,4 @@ const processPayment = async (pedidoId, amount)=>{
   return res;
 }
 
-module.exports = { create, getById, getPedido, updatePrecio, processPayment, completePedido, listByCliente, listByProfesional, assignToProfessional, rejectPedido, markPendingPayment };
+module.exports = { create, getById, getPedido, updatePrecio, processPayment, completePedido, listByCliente, listByProfesional, assignToProfessional, rejectPedido, markPendingPayment, uploadComprobante, verifyComprobante };

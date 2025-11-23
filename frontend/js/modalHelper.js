@@ -42,6 +42,19 @@ window.showModal = function(options) {
     modal.addEventListener('shown.bs.modal', function () {
       this.removeAttribute('aria-hidden');
     });
+    
+    // Agregar observer para remover aria-hidden si Bootstrap lo agrega dinámicamente
+    const observer = new MutationObserver(function(mutations) {
+      mutations.forEach(function(mutation) {
+        if (mutation.type === 'attributes' && mutation.attributeName === 'aria-hidden') {
+          const modal = mutation.target;
+          if (modal.classList.contains('show')) {
+            modal.removeAttribute('aria-hidden');
+          }
+        }
+      });
+    });
+    observer.observe(modal, { attributes: true });
   }
 
   // Configurar colores e iconos según tipo
@@ -150,3 +163,46 @@ window.showInfo = function(message, title = 'Información') {
     type: 'info'
   });
 };
+
+// Agregar listener global para todos los modales de Bootstrap
+document.addEventListener('DOMContentLoaded', function() {
+  // Observer para detectar cuando Bootstrap agrega modales al DOM
+  const observer = new MutationObserver(function(mutations) {
+    mutations.forEach(function(mutation) {
+      mutation.addedNodes.forEach(function(node) {
+        if (node.nodeType === 1 && node.classList && node.classList.contains('modal')) {
+          setupModalAriaFix(node);
+        }
+      });
+    });
+  });
+  
+  observer.observe(document.body, { childList: true, subtree: true });
+  
+  // Configurar modales existentes
+  document.querySelectorAll('.modal').forEach(setupModalAriaFix);
+});
+
+function setupModalAriaFix(modal) {
+  // Evitar agregar múltiples listeners
+  if (modal.dataset.ariaFixed) return;
+  modal.dataset.ariaFixed = 'true';
+  
+  // Remover aria-hidden cuando el modal se muestra
+  modal.addEventListener('shown.bs.modal', function() {
+    this.removeAttribute('aria-hidden');
+  });
+  
+  // Observer para remover aria-hidden si Bootstrap lo agrega dinámicamente
+  const modalObserver = new MutationObserver(function(mutations) {
+    mutations.forEach(function(mutation) {
+      if (mutation.type === 'attributes' && mutation.attributeName === 'aria-hidden') {
+        if (modal.classList.contains('show')) {
+          modal.removeAttribute('aria-hidden');
+        }
+      }
+    });
+  });
+  
+  modalObserver.observe(modal, { attributes: true });
+}

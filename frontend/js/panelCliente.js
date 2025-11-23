@@ -199,7 +199,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
     });
   }
 
-  // handler para pagar (mostrar QR del profesional)
+  // handler para pagar (mostrar QR del profesional y permitir subir comprobante)
   pedidosContainer.addEventListener('click', async (ev)=>{
     const btn = ev.target.closest && ev.target.closest('.payBtn');
     if (!btn) return;
@@ -225,25 +225,46 @@ document.addEventListener('DOMContentLoaded', ()=>{
             </div>
             <p class="small text-muted">Escanea este QR con tu app bancaria o billetera digital para realizar el pago</p>
             <div class="alert alert-info mt-3">
-              <i class="bi bi-info-circle"></i> Una vez realizado el pago, haz clic en "Confirmar Pago" para notificar al profesional
+              <i class="bi bi-info-circle"></i> Una vez realizado el pago, sube tu comprobante de transferencia
+            </div>
+            <div class="mt-3">
+              <label class="form-label fw-bold">Subir comprobante de pago:</label>
+              <input type="file" id="comprobanteInput" class="form-control" accept="image/*" />
+              <small class="text-muted">Formatos aceptados: JPG, PNG, PDF</small>
             </div>
           </div>
         `,
         type: 'info',
-        confirmText: 'Confirmar Pago',
+        confirmText: 'Enviar Comprobante',
         cancelText: 'Cancelar',
         showCancel: true,
         onConfirm: async () => {
-          const amount = data.precio || defaultPrice;
-          try{
-            const payload = { amount: Number(amount) };
-            await window.apiRequest(`/pedidos/${id}/pay`, { 
-              method: 'POST', 
-              body: JSON.stringify(payload) 
+          const fileInput = document.getElementById('comprobanteInput');
+          if (!fileInput || !fileInput.files || !fileInput.files[0]) {
+            window.showError('Por favor selecciona un comprobante antes de continuar', 'Error');
+            return;
+          }
+          
+          try {
+            // Convertir archivo a base64
+            const file = fileInput.files[0];
+            const base64 = await new Promise((resolve) => {
+              const reader = new FileReader();
+              reader.onloadend = () => resolve(reader.result);
+              reader.readAsDataURL(file);
             });
-            window.showSuccess(`Pago de Bs. ${amount.toFixed(2)} confirmado`, '¡Pago Registrado!');
+            
+            // Enviar comprobante al servidor
+            await window.apiRequest(`/pedidos/${id}/comprobante`, { 
+              method: 'POST', 
+              body: JSON.stringify({ comprobante: base64 }) 
+            });
+            
+            window.showSuccess('Comprobante enviado. El profesional lo verificará y finalizará el trabajo.', '¡Comprobante Enviado!');
             setTimeout(() => loadPedidos(), 800);
-          }catch(err){ window.showError(err.message||'Error al confirmar el pago', 'Error'); }
+          } catch(err) { 
+            window.showError(err.message || 'Error al enviar comprobante', 'Error'); 
+          }
         }
       });
     } catch(err) {
@@ -354,4 +375,21 @@ document.addEventListener('DOMContentLoaded', ()=>{
       window.chatManager.openChatForPedido(pedidoId, destinatarioId);
     }
   });
+  
+  // Auto-abrir chat si viene desde notificación
+  const openChatPedidoId = sessionStorage.getItem('openChatPedidoId');
+  if (openChatPedidoId) {
+    sessionStorage.removeItem('openChatPedidoId');
+    // Esperar a que se carguen los pedidos
+    setTimeout(async () => {
+      try {
+        const pedido = await window.apiRequest(`/pedidos/${openChatPedidoId}`);
+        if (pedido && pedido.profesional_id && window.chatManager) {
+          window.chatManager.openChatForPedido(openChatPedidoId, pedido.profesional_id);
+        }
+      } catch(err) {
+        console.error('Error abriendo chat automático:', err);
+      }
+    }, 1000);
+  }
 });

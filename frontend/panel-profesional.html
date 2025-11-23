@@ -408,11 +408,23 @@
         
         <div class="chat-input-container">
           <form id="chatForm" class="d-flex gap-2">
+            <input type="file" id="chatImageInput" class="d-none" accept="image/*" />
+            <button type="button" id="chatAttachBtn" class="btn btn-outline-secondary" title="Adjuntar imagen">
+              <i class="bi bi-paperclip"></i>
+            </button>
             <input type="text" id="chatInput" class="form-control" placeholder="Escribe un mensaje..." autocomplete="off" />
             <button type="submit" class="btn btn-primary">
               <i class="bi bi-send-fill"></i>
             </button>
           </form>
+          <div id="chatImagePreview" class="mt-2" style="display: none;">
+            <div class="position-relative d-inline-block">
+              <img id="chatPreviewImg" src="" alt="Vista previa" style="max-width: 150px; max-height: 150px; border-radius: 8px;" />
+              <button type="button" id="chatRemoveImageBtn" class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1 rounded-circle" style="width: 24px; height: 24px; padding: 0;">
+                <i class="bi bi-x"></i>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -461,6 +473,7 @@
     <script src="js/header.js"></script>
     <script src="js/modalHelper.js"></script>
     <script src="js/apiService.js"></script>
+    <script src="js/notifications.js"></script>
     <script src="js/chatManager.js"></script>
     <script src="js/panelProfesional.js"></script>
   </body>

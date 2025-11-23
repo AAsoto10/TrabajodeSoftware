@@ -493,6 +493,15 @@ document.addEventListener('DOMContentLoaded', async ()=>{
         } else if (p.estado === 'asignado'){
           // ahora el profesional marca listo para pago (cliente debe pagar luego)
           actions = `<button class="btn btn-success btn-sm readyBtn" data-id="${p.id}"><i class="bi bi-check-circle"></i> Marcar listo para pago</button>`;
+        } else if (p.estado === 'pendiente_pago'){
+          // Si hay comprobante pero no verificado, mostrar botón para verificar
+          if (p.comprobante_pago && p.comprobante_verificado === 0) {
+            actions = `<button class="btn btn-warning btn-sm verComprobanteBtn" data-id="${p.id}" data-comprobante="${p.comprobante_pago}"><i class="bi bi-file-earmark-image"></i> Ver y Verificar Comprobante</button>`;
+          } else if (p.comprobante_pago && p.comprobante_verificado === 1) {
+            actions = `<span class="badge bg-info">Comprobante verificado - Procesando</span>`;
+          } else {
+            actions = `<span class="badge bg-warning">Esperando comprobante del cliente</span>`;
+          }
         } else if (p.estado === 'completado'){
           actions = `<span class="badge bg-success">Completado</span>`;
         } else {
@@ -640,6 +649,47 @@ document.addEventListener('DOMContentLoaded', async ()=>{
           });
         }
       }
+      
+      // Handler para ver y verificar comprobantes
+      document.querySelectorAll('.verComprobanteBtn').forEach(btn => {
+        btn.addEventListener('click', async (ev) => {
+          const id = ev.currentTarget.dataset.id;
+          const comprobante = ev.currentTarget.dataset.comprobante;
+          
+          window.showModal({
+            title: 'Verificar Comprobante de Pago',
+            message: `
+              <div class="text-center">
+                <p class="mb-3">Revisa el comprobante enviado por el cliente:</p>
+                <div class="mb-3">
+                  <img src="${comprobante}" alt="Comprobante" style="max-width: 100%; max-height: 500px; border: 2px solid #17a2b8; border-radius: 8px;" />
+                </div>
+                <div class="alert alert-warning">
+                  <i class="bi bi-exclamation-triangle"></i> 
+                  <strong>Importante:</strong> Verifica que el monto sea correcto antes de confirmar. Al confirmar, se finalizará el trabajo y recibirás el pago.
+                </div>
+              </div>
+            `,
+            type: 'info',
+            confirmText: 'Verificar y Finalizar',
+            cancelText: 'Cancelar',
+            showCancel: true,
+            onConfirm: async () => {
+              try {
+                await window.apiRequest(`/pedidos/${id}/verificar-comprobante`, { method: 'POST' });
+                window.showSuccess('Comprobante verificado y trabajo finalizado. Tu saldo ha sido actualizado.', '¡Trabajo Completado!');
+                setTimeout(async () => {
+                  await reloadUser();
+                  const newPedidos = await window.apiRequest('/pedidos/profesional');
+                  renderStatsAndTabs(newPedidos);
+                }, 800);
+              } catch(err) {
+                window.showError(err.message || 'Error al verificar comprobante', 'Error');
+              }
+            }
+          });
+        });
+      });
     }
 
     renderStatsAndTabs(pedidos);
@@ -659,4 +709,21 @@ document.addEventListener('DOMContentLoaded', async ()=>{
       window.chatManager.openChatForPedido(pedidoId, destinatarioId);
     }
   });
+  
+  // Auto-abrir chat si viene desde notificación
+  const openChatPedidoId = sessionStorage.getItem('openChatPedidoId');
+  if (openChatPedidoId) {
+    sessionStorage.removeItem('openChatPedidoId');
+    // Esperar a que se carguen los pedidos
+    setTimeout(async () => {
+      try {
+        const pedido = await window.apiRequest(`/pedidos/${openChatPedidoId}`);
+        if (pedido && pedido.cliente_id && window.chatManager) {
+          window.chatManager.openChatForPedido(openChatPedidoId, pedido.cliente_id);
+        }
+      } catch(err) {
+        console.error('Error abriendo chat automático:', err);
+      }
+    }, 1000);
+  }
 });

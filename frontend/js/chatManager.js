@@ -13,6 +13,12 @@ class ChatManager {
     this.chatMessages = null;
     this.chatForm = null;
     this.chatInput = null;
+    this.chatImageInput = null;
+    this.chatAttachBtn = null;
+    this.chatImagePreview = null;
+    this.chatPreviewImg = null;
+    this.chatRemoveImageBtn = null;
+    this.selectedImage = null;
     this.refreshInterval = null;
     this.unreadInterval = null;
   }
@@ -25,6 +31,11 @@ class ChatManager {
     this.chatMessages = document.getElementById('chatMessages');
     this.chatForm = document.getElementById('chatForm');
     this.chatInput = document.getElementById('chatInput');
+    this.chatImageInput = document.getElementById('chatImageInput');
+    this.chatAttachBtn = document.getElementById('chatAttachBtn');
+    this.chatImagePreview = document.getElementById('chatImagePreview');
+    this.chatPreviewImg = document.getElementById('chatPreviewImg');
+    this.chatRemoveImageBtn = document.getElementById('chatRemoveImageBtn');
     
     if (!this.chatPanel) {
       console.log('Chat panel not found in this page - chat disabled');
@@ -50,6 +61,19 @@ class ChatManager {
 
     if (this.chatForm) {
       this.chatForm.addEventListener('submit', (e) => this.handleSendMessage(e));
+    }
+    
+    // Event listeners para imágenes
+    if (this.chatAttachBtn) {
+      this.chatAttachBtn.addEventListener('click', () => this.chatImageInput.click());
+    }
+    
+    if (this.chatImageInput) {
+      this.chatImageInput.addEventListener('change', (e) => this.handleImageSelect(e));
+    }
+    
+    if (this.chatRemoveImageBtn) {
+      this.chatRemoveImageBtn.addEventListener('click', () => this.removeSelectedImage());
     }
 
     // Cargar conversaciones y contador de no leídos
@@ -213,10 +237,18 @@ class ChatManager {
         const alignClass = isMine ? 'message-mine' : 'message-theirs';
         const time = this.formatTime(msg.created_at);
 
+        // Verificar si el mensaje contiene una imagen (base64)
+        let content = msg.mensaje;
+        if (msg.mensaje && msg.mensaje.startsWith('data:image/')) {
+          content = `<img src="${msg.mensaje}" alt="Imagen" style="max-width: 250px; max-height: 250px; border-radius: 8px; cursor: pointer;" onclick="window.open(this.src)" />`;
+        } else {
+          content = this.escapeHtml(msg.mensaje);
+        }
+
         html += `
           <div class="message ${alignClass}" data-msg-id="${msg.id}">
             <div class="message-bubble">
-              ${msg.mensaje}
+              ${content}
               <div class="message-time">${time}</div>
             </div>
           </div>
@@ -250,30 +282,43 @@ class ChatManager {
     e.preventDefault();
 
     const mensaje = this.chatInput.value.trim();
-    if (!mensaje || !this.currentPedidoId || !this.currentDestinatarioId) return;
+    const hasImage = this.selectedImage !== null;
+    
+    if ((!mensaje && !hasImage) || !this.currentPedidoId || !this.currentDestinatarioId) return;
 
     try {
+      // Preparar el contenido del mensaje
+      const contenido = hasImage ? this.selectedImage : mensaje;
+      
       const newMsg = await window.apiRequest('/mensajes', {
         method: 'POST',
         body: JSON.stringify({
           pedido_id: this.currentPedidoId,
           destinatario_id: this.currentDestinatarioId,
-          mensaje
+          mensaje: contenido
         })
       });
 
       this.chatInput.value = '';
+      this.removeSelectedImage();
       
       // Agregar el mensaje directamente al DOM sin recargar
       const user = JSON.parse(sessionStorage.getItem('user') || '{}');
       const time = this.formatTime(new Date().toISOString());
+      
+      let displayContent = contenido;
+      if (hasImage) {
+        displayContent = `<img src="${contenido}" alt="Imagen" style="max-width: 250px; max-height: 250px; border-radius: 8px; cursor: pointer;" onclick="window.open(this.src)" />`;
+      } else {
+        displayContent = this.escapeHtml(contenido);
+      }
       
       const messageDiv = document.createElement('div');
       messageDiv.className = 'message message-mine';
       messageDiv.setAttribute('data-msg-id', newMsg.id || Date.now());
       messageDiv.innerHTML = `
         <div class="message-bubble">
-          ${mensaje}
+          ${displayContent}
           <div class="message-time">${time}</div>
         </div>
       `;
@@ -289,6 +334,45 @@ class ChatManager {
       console.error('Error sending message:', err);
       window.showError('Error al enviar mensaje', 'Error');
     }
+  }
+  
+  handleImageSelect(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    // Validar que sea una imagen
+    if (!file.type.startsWith('image/')) {
+      alert('Por favor selecciona un archivo de imagen válido');
+      return;
+    }
+    
+    // Validar tamaño (máximo 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('La imagen es demasiado grande. Máximo 5MB');
+      return;
+    }
+    
+    // Convertir a base64
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      this.selectedImage = event.target.result;
+      this.chatPreviewImg.src = this.selectedImage;
+      this.chatImagePreview.style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+  }
+  
+  removeSelectedImage() {
+    this.selectedImage = null;
+    this.chatImageInput.value = '';
+    this.chatImagePreview.style.display = 'none';
+    this.chatPreviewImg.src = '';
+  }
+  
+  escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
   }
 
   async updateUnreadBadge() {

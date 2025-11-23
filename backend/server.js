@@ -14,6 +14,7 @@ const backupController = require('./src/controllers/backupController');
 const databaseController = require('./src/controllers/databaseController');
 const mensajeController = require('./src/controllers/mensajeController');
 const categoriaController = require('./src/controllers/categoriaController');
+const notificationController = require('./src/controllers/notificationController');
 
 const authMiddleware = require('./src/middleware/authMiddleware');
 const adminMiddleware = require('./src/middleware/adminMiddleware');
@@ -40,6 +41,8 @@ app.use('/api/profiles', profilesController);
 app.use('/api/profesionales', ratingController); // Ahora público, sin authMiddleware
 app.use('/api/reclamos', authMiddleware, reclamoController);
 app.use('/api/mensajes', authMiddleware, mensajeController);
+// Notificaciones: /stream sin authMiddleware (maneja token internamente), resto con middleware
+app.use('/api/notifications', notificationController);
 
 const PORT = process.env.PORT || 3000;
 
