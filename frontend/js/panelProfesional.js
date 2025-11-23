@@ -171,6 +171,19 @@ document.addEventListener('DOMContentLoaded', async ()=>{
     }
   });
 
+  // Preview del QR de pago
+  document.getElementById('p_qr_pago_file').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        document.getElementById('qrPagoPreviewImg').src = event.target.result;
+        document.getElementById('qrPagoPreview').style.display = 'block';
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+
   profileForm.addEventListener('submit', async (e)=>{
     e.preventDefault();
     
@@ -187,6 +200,17 @@ document.addEventListener('DOMContentLoaded', async ()=>{
       });
     }
     
+    // Manejar QR de pago
+    let qrPagoValue = null;
+    const qrPagoFile = document.getElementById('p_qr_pago_file').files[0];
+    if (qrPagoFile) {
+      const reader = new FileReader();
+      qrPagoValue = await new Promise((resolve) => {
+        reader.onload = (event) => resolve(event.target.result);
+        reader.readAsDataURL(qrPagoFile);
+      });
+    }
+    
     const body = {
       categoria: document.getElementById('p_categoria').value,
       tarifa: Number(document.getElementById('p_tarifa').value)||0,
@@ -195,14 +219,20 @@ document.addEventListener('DOMContentLoaded', async ()=>{
       certificados: document.getElementById('p_certs').value,
       avatar: avatarValue
     };
+    
     try{
       if (currentEditingProfileId){
         await window.apiRequest(`/profiles/${currentEditingProfileId}`, { method: 'PUT', body: JSON.stringify(body) });
-        window.showSuccess('Perfil actualizado correctamente', '¡Actualizado!');
       }else{
         await window.apiRequest('/profiles', { method: 'POST', body: JSON.stringify(body) });
-        window.showSuccess('Perfil creado correctamente', '¡Perfil Creado!');
       }
+      
+      // Actualizar QR de pago en usuario (en /auth/me)
+      if (qrPagoValue) {
+        await window.apiRequest('/auth/me', { method: 'PUT', body: JSON.stringify({ qr_pago: qrPagoValue }) });
+      }
+      
+      window.showSuccess('Perfil actualizado correctamente', '¡Actualizado!');
       profileModal.hide();
       // refresh list
       setTimeout(async () => {
@@ -523,15 +553,75 @@ document.addEventListener('DOMContentLoaded', async ()=>{
       // attach ready handlers for activos (marcar pendiente de pago)
       tabActivos.querySelectorAll('.readyBtn').forEach(btn=>btn.addEventListener('click', async (ev)=>{
         const id = ev.currentTarget.dataset.id;
-        try{ 
-          await window.apiRequest(`/pedidos/${id}/ready`, { method:'POST' }); 
-          window.showSuccess('Pedido marcado como <strong>pendiente de pago</strong>', '¡Listo!');
-          setTimeout(async () => {
-            const newPedidos = await window.apiRequest('/pedidos/profesional');
-            renderStatsAndTabs(newPedidos);
-          }, 600);
+        const pedido = pedidosList.find(p => p.id == id);
+        if (!pedido) return;
+        
+        const precioActual = Number(pedido.precio || 0);
+        
+        // Abrir modal para confirmar/ingresar precio
+        const modalEl = document.getElementById('precioModal');
+        const modal = new bootstrap.Modal(modalEl);
+        const precioInput = document.getElementById('precioInput');
+        const desglose = document.getElementById('desglosePrecio');
+        const montoTotal = document.getElementById('montoTotal');
+        const tuGanancia = document.getElementById('tuGanancia');
+        const comisionPlatforma = document.getElementById('comisionPlatforma');
+        const confirmarBtn = document.getElementById('confirmarPrecioBtn');
+        
+        // Setear precio actual si existe
+        precioInput.value = precioActual > 0 ? precioActual.toFixed(2) : '';
+        if (precioActual > 0) {
+          const comision = Number((precioActual * 0.10).toFixed(2));
+          const ganancia = Number((precioActual - comision).toFixed(2));
+          montoTotal.textContent = `Bs. ${precioActual.toFixed(2)}`;
+          tuGanancia.textContent = `Bs. ${ganancia.toFixed(2)}`;
+          comisionPlatforma.textContent = `Bs. ${comision.toFixed(2)}`;
+          desglose.classList.remove('d-none');
+        } else {
+          desglose.classList.add('d-none');
         }
-        catch(err){ window.showError(err.message||'Error al marcar listo para pago', 'Error'); }
+        
+        // Actualizar desglose cuando cambia el input
+        precioInput.addEventListener('input', () => {
+          const monto = Number(precioInput.value || 0);
+          if (monto > 0) {
+            const comision = Number((monto * 0.10).toFixed(2));
+            const ganancia = Number((monto - comision).toFixed(2));
+            montoTotal.textContent = `Bs. ${monto.toFixed(2)}`;
+            tuGanancia.textContent = `Bs. ${ganancia.toFixed(2)}`;
+            comisionPlatforma.textContent = `Bs. ${comision.toFixed(2)}`;
+            desglose.classList.remove('d-none');
+          } else {
+            desglose.classList.add('d-none');
+          }
+        });
+        
+        // Handler del botón confirmar
+        confirmarBtn.onclick = async () => {
+          const monto = Number(precioInput.value || 0);
+          if (monto <= 0) {
+            window.showError('Debes ingresar un precio válido mayor a 0', 'Error');
+            return;
+          }
+          
+          modal.hide();
+          
+          try{ 
+            await window.apiRequest(`/pedidos/${id}/ready`, { 
+              method: 'POST',
+              body: JSON.stringify({ precio: monto })
+            }); 
+            window.showSuccess('Pedido marcado como <strong>pendiente de pago</strong>', '¡Listo!');
+            setTimeout(async () => {
+              const newPedidos = await window.apiRequest('/pedidos/profesional');
+              renderStatsAndTabs(newPedidos);
+            }, 600);
+          } catch(err) { 
+            window.showError(err.message||'Error al marcar listo para pago', 'Error'); 
+          }
+        };
+        
+        modal.show();
       }));
 
       // render ratings into tab-calificaciones

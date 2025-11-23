@@ -33,7 +33,7 @@ const updateProfile = async (id, fields = {}) => {
   const db = getDB();
   const parts = [];
   const values = [];
-  const allowed = ['nombre','password','categoria','tarifa','zona','biografia','certificados','avatar'];
+  const allowed = ['nombre','password','categoria','tarifa','zona','biografia','certificados','avatar','qr_pago'];
   for (const k of allowed){
     if (Object.prototype.hasOwnProperty.call(fields,k)){
       parts.push(`${k} = ?`);

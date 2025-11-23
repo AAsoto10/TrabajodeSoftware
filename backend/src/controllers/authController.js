@@ -39,7 +39,7 @@ router.put('/me', authMiddleware, async (req,res)=>{
   try{
     const id = req.user && req.user.id;
     if (!id) return res.status(401).json({ message: 'No autorizado' });
-    const { nombre, password, categoria, tarifa, zona, biografia, certificados, avatar } = req.body;
+    const { nombre, password, categoria, tarifa, zona, biografia, certificados, avatar, qr_pago } = req.body;
     const updateData = {};
     if (nombre !== undefined) updateData.nombre = nombre;
     if (categoria !== undefined) updateData.categoria = categoria;
@@ -48,6 +48,7 @@ router.put('/me', authMiddleware, async (req,res)=>{
     if (biografia !== undefined) updateData.biografia = biografia;
     if (certificados !== undefined) updateData.certificados = certificados;
     if (avatar !== undefined) updateData.avatar = avatar;
+    if (qr_pago !== undefined) updateData.qr_pago = qr_pago;
     if (password) updateData.password = bcrypt.hashSync(password, 10);
     await userRepo.updateProfile(id, updateData);
     // return updated public user
@@ -58,7 +59,7 @@ router.put('/me', authMiddleware, async (req,res)=>{
      }
      // return updated public user
      const u2 = await userRepo.findById(id);
-    const out = { id: u2.id, nombre: u2.nombre, email: u2.email, role: u2.role, estado_validacion: u2.estado_validacion, categoria: u2.categoria, saldo: u2.saldo, tarifa: u2.tarifa, zona: u2.zona, biografia: u2.biografia, certificados: u2.certificados, avatar: u2.avatar };
+    const out = { id: u2.id, nombre: u2.nombre, email: u2.email, role: u2.role, estado_validacion: u2.estado_validacion, categoria: u2.categoria, saldo: u2.saldo, tarifa: u2.tarifa, zona: u2.zona, biografia: u2.biografia, certificados: u2.certificados, avatar: u2.avatar, qr_pago: u2.qr_pago };
     res.json(out);
   }catch(err){ res.status(500).json({ message: err.message }); }
 });

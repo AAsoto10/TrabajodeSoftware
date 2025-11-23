@@ -105,11 +105,22 @@ router.post('/:id/ready', async (req,res)=>{
   try{
     const pedidoId = req.params.id;
     const user = req.user;
+    const { precio } = req.body;
+    
     if (user.role !== 'profesional') return res.status(403).json({message:'Sólo profesionales pueden marcar listo para pago'});
+    
     // verificar que el profesional esté asignado a este pedido
     const pedido = await require('../repositories/pedidoRepository').getPedido(pedidoId);
     if (!pedido) return res.status(404).json({message:'Pedido no encontrado'});
     if (String(pedido.profesional_id) !== String(user.id)) return res.status(403).json({message:'No estás asignado a este pedido'});
+    
+    // Si se envía precio, actualizarlo primero
+    if (precio && Number(precio) > 0) {
+      await require('../repositories/pedidoRepository').updatePrecio(pedidoId, Number(precio));
+    } else if (!pedido.precio || Number(pedido.precio) <= 0) {
+      return res.status(400).json({message:'Debes especificar un precio válido para el servicio'});
+    }
+    
     const out = await require('../repositories/pedidoRepository').markPendingPayment(pedidoId);
     res.json({ message: 'Pedido marcado pendiente de pago', out });
   }catch(err){ console.error('POST /api/pedidos/:id/ready error:', err); res.status(500).json({message:err.message}); }
@@ -120,15 +131,18 @@ router.post('/:id/pay', async (req,res)=>{
   try{
     const pedidoId = req.params.id;
     const user = req.user;
+    console.log('POST /pay - pedidoId:', pedidoId, 'user:', user.id, 'body:', req.body);
+    
     const { amount } = req.body || {};
     const pedidoRepo = require('../repositories/pedidoRepository');
     const pedido = await pedidoRepo.getPedido(pedidoId);
+    
     if (!pedido) return res.status(404).json({message:'Pedido no encontrado'});
     if (String(pedido.cliente_id) !== String(user.id)) return res.status(403).json({message:'Sólo el cliente puede pagar este pedido'});
-    if (pedido.estado !== 'pendiente_pago') return res.status(400).json({message:'Pedido no está pendiente de pago'});
+    if (pedido.estado !== 'pendiente_pago') return res.status(400).json({message:`Pedido no está pendiente de pago. Estado actual: ${pedido.estado}`});
 
     const monto = (typeof amount !== 'undefined' && !isNaN(Number(amount))) ? Number(amount) : (pedido.precio || 0);
-    if (monto <= 0) return res.status(400).json({message:'Monto inválido'});
+    if (monto <= 0) return res.status(400).json({message:`Monto inválido: ${monto}`});
 
     // procesar pago simulado: actualizar precio y completar (actualiza saldo)
     const result = await pedidoRepo.processPayment(pedidoId, monto);
@@ -164,6 +178,30 @@ router.post('/:id/calificar', async (req,res)=>{
     });
     res.json({ message: 'Calificación registrada', id: out.id });
   }catch(err){ console.error('POST /api/pedidos/:id/calificar error:', err); res.status(500).json({message:err.message}); }
+});
+
+// Obtener QR de pago del profesional de un pedido
+router.get('/:id/qr-pago', async (req,res)=>{
+  try{
+    const pedidoId = Number(req.params.id);
+    const user = req.user;
+    const pedido = await pedidoRepo.getById(pedidoId);
+    console.log('GET /qr-pago - pedidoId:', pedidoId, 'pedido:', pedido);
+    
+    if (!pedido) return res.status(404).json({message:'Pedido no encontrado'});
+    if (String(pedido.cliente_id) !== String(user.id)) return res.status(403).json({message:'No autorizado'});
+    
+    // Obtener QR del profesional
+    const db = getDB();
+    const profesional = await db.get('SELECT qr_pago FROM users WHERE id = ?', [pedido.profesional_id]);
+    if (!profesional || !profesional.qr_pago) {
+      return res.status(404).json({message:'El profesional no tiene configurado un QR de pago'});
+    }
+    
+    const precio = Number(pedido.precio) || 0;
+    console.log('Devolviendo precio:', precio, 'tipo:', typeof precio);
+    res.json({ qr_pago: profesional.qr_pago, precio });
+  }catch(err){ console.error('GET /api/pedidos/:id/qr-pago error:', err); res.status(500).json({message:err.message}); }
 });
 
 module.exports = router;

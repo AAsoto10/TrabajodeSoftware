@@ -356,6 +356,14 @@
                       </div>
                     </div>
                   </div>
+                  <div class="mb-3">
+                    <label class="form-label"><i class="bi bi-qr-code"></i> QR de Pago (para recibir pagos)</label>
+                    <input type="file" id="p_qr_pago_file" class="form-control" accept="image/*" />
+                    <small class="text-muted">Sube el QR de tu cuenta bancaria o billetera digital. Los clientes lo verán al momento de pagar.</small>
+                    <div id="qrPagoPreview" class="mt-2" style="display:none;">
+                      <img id="qrPagoPreviewImg" src="" alt="QR Pago" style="max-width: 200px; max-height: 200px; border-radius: 8px; border: 2px solid #28a745;" />
+                    </div>
+                  </div>
                   <div class="d-flex gap-2">
                     <button id="profileSaveBtn" class="btn btn-primary" type="submit">Guardar perfil</button>
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
@@ -405,6 +413,46 @@
               <i class="bi bi-send-fill"></i>
             </button>
           </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal para confirmar precio antes de marcar listo -->
+    <div class="modal fade" id="precioModal" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Confirmar precio del servicio</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <div class="alert alert-info">
+              <i class="bi bi-info-circle"></i> Ingresa el monto total que cobrarás al cliente
+            </div>
+            <div class="mb-3">
+              <label for="precioInput" class="form-label">Precio del servicio (Bs.)</label>
+              <input type="number" class="form-control" id="precioInput" step="0.01" min="1" placeholder="Ej: 150.00">
+            </div>
+            <div id="desglosePrecio" class="bg-light p-3 rounded d-none">
+              <h6 class="mb-2">Desglose:</h6>
+              <div class="d-flex justify-content-between mb-1">
+                <span>Monto total:</span>
+                <strong id="montoTotal">Bs. 0.00</strong>
+              </div>
+              <div class="d-flex justify-content-between mb-1 text-success">
+                <span>Tu ganancia (90%):</span>
+                <strong id="tuGanancia">Bs. 0.00</strong>
+              </div>
+              <div class="d-flex justify-content-between text-muted">
+                <span>Comisión plataforma (10%):</span>
+                <span id="comisionPlatforma">Bs. 0.00</span>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="button" class="btn btn-success" id="confirmarPrecioBtn">Marcar listo para pago</button>
+          </div>
         </div>
       </div>
     </div>
