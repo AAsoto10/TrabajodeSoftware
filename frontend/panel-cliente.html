@@ -12,7 +12,7 @@
     <nav class="site-header fixed-top">
       <div class="container d-flex align-items-center">
         <a class="navbar-brand" href="index.html">
-          <img src="images/logo.png" alt="HogarFix Logo" style="height:60px; width:auto; margin-right:12px; object-fit:contain;">
+          <img src="images/logo.png" alt="HogarFix Logo" class="navbar-logo">
           <span class="fw-bold h4 mb-0 text-dark">HogarFix</span>
         </a>
         <ul class="nav mx-auto">
@@ -21,8 +21,8 @@
         </ul>
         <div class="ms-auto d-flex align-items-center gap-3">
           <div class="position-relative">
-            <button id="chatToggleBtn" class="btn btn-outline-info rounded-circle p-2" style="width:42px;height:42px;position:relative;">
-              <i class="bi bi-chat-dots" style="font-size:1.1rem;"></i>
+            <button id="chatToggleBtn" class="btn btn-outline-info rounded-circle p-2 chat-toggle-btn">
+              <i class="bi bi-chat-dots chat-icon"></i>
               <span id="chatBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none">
                 0
               </span>
@@ -33,50 +33,78 @@
       </div>
     </nav>
 
-    <div class="container">
-      <div class="row mt-4">
-        <div class="col-12 d-flex justify-content-between align-items-center">
-          <div>
-            <h1 class="display-5">Panel de Cliente</h1>
-            <p class="text-muted">Gestiona tus solicitudes de servicio</p>
-          </div>
-          <div>
-            <a id="nuevaSolicitudBtn" class="btn btn-info text-white rounded-pill">+  Nueva Solicitud</a>
+    <div class="container py-4">
+      <!-- Header Section -->
+      <div class="row mb-4">
+        <div class="col-12">
+          <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+              <h1 class="display-5 fw-bold mb-2">Panel de Cliente</h1>
+              <p class="text-muted mb-0">Gestiona tus solicitudes de servicio</p>
+            </div>
+            <div>
+              <button id="nuevaSolicitudBtn" class="btn btn-info text-white rounded-pill px-4 py-2 shadow-sm">
+                <i class="bi bi-plus-circle me-2"></i>Nueva Solicitud
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
-      <div class="row mt-4">
+      <!-- Stats Cards -->
+      <div class="row g-4 mb-5" id="statsCards">
+        <!-- Las estadísticas se cargan dinámicamente -->
+      </div>
+
+      <!-- Pedidos Container -->
+      <div class="row">
         <div class="col-12">
-          <div id="misPedidosContainer"></div>
+          <div id="misPedidosContainer">
+            <!-- Los pedidos se cargan dinámicamente -->
+          </div>
         </div>
       </div>
 
-      <div class="row mt-4">
+      <!-- Formulario Nueva Solicitud (oculto por defecto) -->
+      <div class="row mt-4 d-none" id="pedidoFormContainer">
         <div class="col-12">
-          <div class="card p-4 d-none" id="pedidoCard">
-            <h5>Solicitar servicio</h5>
-            <form id="pedidoForm">
-              <div class="mb-2">
-                <label class="form-label">Categoría</label>
-                <select id="categoria" class="form-select" required>
-                  <option value="Plomería">Plomería</option>
-                  <option value="Electricidad">Electricidad</option>
-                  <option value="Carpintería">Carpintería</option>
-                </select>
-              </div>
-              <div class="mb-2">
-                <label class="form-label">Descripción</label>
-                <textarea id="descripcion" class="form-control" required></textarea>
-              </div>
-              <div class="mb-2">
-                <label class="form-label">Precio estimado (USD)</label>
-                <input id="precio" type="number" class="form-control" required>
-              </div>
-              <div class="d-grid">
-                <button class="btn btn-primary" type="submit">Pagar y solicitar</button>
-              </div>
-            </form>
+          <div class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+              <h5 class="fw-bold mb-4"><i class="bi bi-plus-square me-2 text-info"></i>Solicitar Servicio</h5>
+              <form id="pedidoForm">
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <label class="form-label fw-semibold">Categoría</label>
+                    <select id="categoria" class="form-select" required>
+                      <option value="">Selecciona una categoría</option>
+                      <option value="Plomería">Plomería</option>
+                      <option value="Electricidad">Electricidad</option>
+                      <option value="Carpintería">Carpintería</option>
+                      <option value="Pintura">Pintura</option>
+                      <option value="Limpieza">Limpieza</option>
+                    </select>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label fw-semibold">Precio estimado (Bs.)</label>
+                    <input id="precio" type="number" class="form-control" placeholder="Ej: 150" required>
+                  </div>
+                  <div class="col-12">
+                    <label class="form-label fw-semibold">Descripción del servicio</label>
+                    <textarea id="descripcion" class="form-control" rows="4" placeholder="Describe el servicio que necesitas..." required></textarea>
+                  </div>
+                  <div class="col-12">
+                    <div class="d-flex gap-2">
+                      <button class="btn btn-info text-white px-4" type="submit">
+                        <i class="bi bi-check-circle me-2"></i>Enviar Solicitud
+                      </button>
+                      <button class="btn btn-outline-secondary px-4" type="button" id="cancelPedidoBtn">
+                        Cancelar
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       </div>
@@ -177,7 +205,7 @@
       
       <div id="conversacionesList" class="chat-conversations-list">
         <div class="text-center text-muted py-5">
-          <i class="bi bi-inbox" style="font-size:3rem;"></i>
+          <i class="bi bi-inbox empty-inbox-icon"></i>
           <p class="mt-2">No hay conversaciones</p>
         </div>
       </div>
@@ -206,10 +234,10 @@
               <i class="bi bi-send-fill"></i>
             </button>
           </form>
-          <div id="chatImagePreview" class="mt-2" style="display: none;">
+          <div id="chatImagePreview" class="mt-2 preview-container">
             <div class="position-relative d-inline-block">
-              <img id="chatPreviewImg" src="" alt="Vista previa" style="max-width: 150px; max-height: 150px; border-radius: 8px;" />
-              <button type="button" id="chatRemoveImageBtn" class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1 rounded-circle" style="width: 24px; height: 24px; padding: 0;">
+              <img id="chatPreviewImg" src="" alt="Vista previa" class="preview-img chat-preview" />
+              <button type="button" id="chatRemoveImageBtn" class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1 rounded-circle remove-img-btn">
                 <i class="bi bi-x"></i>
               </button>
             </div>

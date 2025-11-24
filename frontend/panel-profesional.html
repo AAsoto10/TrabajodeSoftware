@@ -7,219 +7,12 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="CSS/style.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
-    <style>
-      body {
-        background: linear-gradient(135deg, #f0f9ff 0%, #e6f9ff 100%);
-      }
-      
-      .professional-sidebar {
-        width: 280px;
-        background: white;
-        box-shadow: 4px 0 24px rgba(0,212,255,0.1);
-        border-radius: 0 24px 24px 0;
-        padding: 2rem 1.5rem;
-        position: fixed;
-        height: calc(100vh - var(--hf-header-height));
-        overflow-y: auto;
-        z-index: 100;
-      }
-      
-      .professional-sidebar h5 {
-        font-weight: 800;
-        font-size: 1.3rem;
-        background: linear-gradient(135deg, #00d4ff 0%, #007BFF 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        margin-bottom: 2rem;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-      }
-      
-      .professional-sidebar .nav-link {
-        border-radius: 12px;
-        padding: 1rem 1.25rem;
-        margin-bottom: 0.75rem;
-        font-weight: 600;
-        color: #64748b;
-        transition: all 0.3s ease;
-        border: 2px solid transparent;
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-      }
-      
-      .professional-sidebar .nav-link i {
-        font-size: 1.25rem;
-        transition: transform 0.3s ease;
-      }
-      
-      .professional-sidebar .nav-link:hover {
-        background: linear-gradient(135deg, #e0f7ff 0%, #f0f9ff 100%);
-        color: #00a8cc;
-        transform: translateX(5px);
-        border-color: rgba(0,212,255,0.2);
-      }
-      
-      .professional-sidebar .nav-link:hover i {
-        transform: scale(1.1);
-      }
-      
-      .professional-sidebar .nav-link.active {
-        background: linear-gradient(135deg, #00d4ff 0%, #00a8cc 100%);
-        color: white;
-        box-shadow: 0 4px 16px rgba(0,212,255,0.3);
-        border-color: transparent;
-      }
-      
-      .professional-main {
-        margin-left: 280px;
-        padding: 2rem;
-        min-height: calc(100vh - var(--hf-header-height));
-      }
-      
-      .professional-header {
-        background: white;
-        border-radius: 20px;
-        padding: 2rem;
-        box-shadow: 0 8px 32px rgba(0,212,255,0.12);
-        margin-bottom: 2rem;
-        border: 2px solid rgba(0,212,255,0.1);
-        position: relative;
-        overflow: hidden;
-      }
-      
-      .professional-header::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 5px;
-        background: linear-gradient(90deg, #00d4ff 0%, #007BFF 50%, #00d4ff 100%);
-        background-size: 200% 100%;
-        animation: gradientShift 3s ease infinite;
-      }
-      
-      .professional-header h3 {
-        font-weight: 800;
-        font-size: 2rem;
-        background: linear-gradient(135deg, #1e293b 0%, #475569 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        margin-bottom: 0.5rem;
-      }
-      
-      .professional-header .subtitle {
-        color: #64748b;
-        font-size: 1.05rem;
-      }
-      
-      .stat-card-pro {
-        background: white;
-        border-radius: 16px;
-        padding: 1.5rem;
-        box-shadow: 0 4px 16px rgba(0,212,255,0.1);
-        border: 2px solid rgba(0,212,255,0.1);
-        transition: all 0.3s ease;
-        height: 100%;
-      }
-      
-      .stat-card-pro:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 12px 32px rgba(0,212,255,0.2);
-        border-color: rgba(0,212,255,0.3);
-      }
-      
-      .stat-card-pro .stat-icon-pro {
-        width: 56px;
-        height: 56px;
-        border-radius: 14px;
-        background: linear-gradient(135deg, #e0f7ff 0%, #f0f9ff 100%);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-bottom: 1rem;
-        box-shadow: 0 4px 12px rgba(0,212,255,0.15);
-      }
-      
-      .stat-card-pro .stat-icon-pro i {
-        font-size: 1.75rem;
-        background: linear-gradient(135deg, #00d4ff 0%, #007BFF 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-      }
-      
-      .stat-card-pro .stat-label-pro {
-        font-size: 0.85rem;
-        font-weight: 600;
-        color: #64748b;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        margin-bottom: 0.5rem;
-      }
-      
-      .stat-card-pro .stat-value-pro {
-        font-size: 2rem;
-        font-weight: 800;
-        background: linear-gradient(135deg, #1e293b 0%, #475569 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        line-height: 1;
-      }
-      
-      .section-title-pro {
-        font-weight: 700;
-        font-size: 1.5rem;
-        color: #1e293b;
-        margin-bottom: 1.5rem;
-        padding-bottom: 1rem;
-        border-bottom: 3px solid #e0f7ff;
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-      }
-      
-      .section-title-pro i {
-        color: #00d4ff;
-        font-size: 1.75rem;
-      }
-      
-      @media (max-width: 1200px) {
-        .professional-sidebar {
-          width: 240px;
-        }
-        .professional-main {
-          margin-left: 240px;
-        }
-      }
-      
-      @media (max-width: 768px) {
-        .professional-sidebar {
-          display: none;
-        }
-        .professional-main {
-          margin-left: 0;
-          padding: 1rem;
-        }
-        .professional-header h3 {
-          font-size: 1.5rem;
-        }
-        .stat-card-pro {
-          margin-bottom: 1rem;
-        }
-      }
-    </style>
   </head>
-  <body>
+  <body class="panel-profesional">
     <nav class="site-header fixed-top">
       <div class="container d-flex align-items-center">
         <a class="navbar-brand" href="index.html">
-          <img src="images/logo.png" alt="HogarFix Logo" style="height:60px; width:auto; margin-right:12px; object-fit:contain;">
+          <img src="images/logo.png" alt="HogarFix Logo" class="navbar-logo">
           <span class="fw-bold h4 mb-0 text-dark">HogarFix</span>
         </a>
         <ul class="nav mx-auto">
@@ -228,8 +21,8 @@
         </ul>
         <div class="ms-auto d-flex align-items-center gap-3">
           <div class="position-relative">
-            <button id="chatToggleBtn" class="btn btn-outline-info rounded-circle p-2" style="width:42px;height:42px;position:relative;">
-              <i class="bi bi-chat-dots" style="font-size:1.1rem;"></i>
+            <button id="chatToggleBtn" class="btn btn-outline-info rounded-circle p-2 chat-toggle-btn">
+              <i class="bi bi-chat-dots chat-icon"></i>
               <span id="chatBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none">
                 0
               </span>
@@ -241,27 +34,6 @@
     </nav>
 
     <div class="d-flex">
-      <nav class="professional-sidebar">
-        <h5>
-          <i class="bi bi-person-workspace"></i>
-          Profesional
-        </h5>
-        <ul class="nav flex-column">
-          <li class="nav-item">
-            <a class="nav-link active" href="#">
-              <i class="bi bi-clipboard-check"></i>
-              Pedidos asignados
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="#">
-              <i class="bi bi-wallet2"></i>
-              Mi saldo
-            </a>
-          </li>
-        </ul>
-      </nav>
-      
       <main class="professional-main">
         <div class="professional-header">
           <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
@@ -291,10 +63,6 @@
 
           <!-- Pedidos asignados -->
           <div class="col-12">
-            <h4 class="section-title-pro">
-              <i class="bi bi-list-check"></i>
-              Mis Pedidos
-            </h4>
             <div id="pedidosList"></div>
           </div>
         </div>
@@ -350,8 +118,8 @@
                       <div class="tab-pane fade" id="file-tab-pane" role="tabpanel">
                         <input type="file" id="p_avatar_file" class="form-control" accept="image/*" />
                         <small class="text-muted">Selecciona una imagen desde tu dispositivo</small>
-                        <div id="avatarPreview" class="mt-2" style="display:none;">
-                          <img id="avatarPreviewImg" src="" alt="Preview" style="max-width: 150px; max-height: 150px; border-radius: 8px; border: 2px solid #dee2e6;" />
+                        <div id="avatarPreview" class="mt-2 preview-container">
+                          <img id="avatarPreviewImg" src="" alt="Preview" class="preview-img avatar-preview" />
                         </div>
                       </div>
                     </div>
@@ -360,8 +128,8 @@
                     <label class="form-label"><i class="bi bi-qr-code"></i> QR de Pago (para recibir pagos)</label>
                     <input type="file" id="p_qr_pago_file" class="form-control" accept="image/*" />
                     <small class="text-muted">Sube el QR de tu cuenta bancaria o billetera digital. Los clientes lo verán al momento de pagar.</small>
-                    <div id="qrPagoPreview" class="mt-2" style="display:none;">
-                      <img id="qrPagoPreviewImg" src="" alt="QR Pago" style="max-width: 200px; max-height: 200px; border-radius: 8px; border: 2px solid #28a745;" />
+                    <div id="qrPagoPreview" class="mt-2 preview-container">
+                      <img id="qrPagoPreviewImg" src="" alt="QR Pago" class="preview-img qr-preview" />
                     </div>
                   </div>
                   <div class="d-flex gap-2">
@@ -388,7 +156,7 @@
       
       <div id="conversacionesList" class="chat-conversations-list">
         <div class="text-center text-muted py-5">
-          <i class="bi bi-inbox" style="font-size:3rem;"></i>
+          <i class="bi bi-inbox empty-inbox-icon"></i>
           <p class="mt-2">No hay conversaciones</p>
         </div>
       </div>
@@ -417,10 +185,10 @@
               <i class="bi bi-send-fill"></i>
             </button>
           </form>
-          <div id="chatImagePreview" class="mt-2" style="display: none;">
+          <div id="chatImagePreview" class="mt-2 preview-container">
             <div class="position-relative d-inline-block">
-              <img id="chatPreviewImg" src="" alt="Vista previa" style="max-width: 150px; max-height: 150px; border-radius: 8px;" />
-              <button type="button" id="chatRemoveImageBtn" class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1 rounded-circle" style="width: 24px; height: 24px; padding: 0;">
+              <img id="chatPreviewImg" src="" alt="Vista previa" class="preview-img chat-preview" />
+              <button type="button" id="chatRemoveImageBtn" class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1 rounded-circle remove-img-btn">
                 <i class="bi bi-x"></i>
               </button>
             </div>
